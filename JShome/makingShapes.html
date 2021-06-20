@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<head>
+  <title>Playing With Shapes</title>
+<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js" src="d3.slider.js"></script>
+</head>
+
+<div id="container"></div>
+
+<script type="text/javascript">
+  var DNA = d3.select("#container").
+    append("svg:svg").
+    attr("width", 2000).
+    attr("height", 1000);
+
+// Drawing lines to make a triangle
+  DNA.append("svg:line")
+    .attr("x1", 1)
+    .attr("y1", 1)
+    .attr("x2", 50)
+    .attr("y2", 25)
+    .attr("stroke-width", 2)
+    .attr("stroke", "black");
+  DNA.append("svg:line")
+    .attr("x1", 1)
+    .attr("y1", 1)
+    .attr("x2", 1)
+    .attr("y2", 50)
+    .attr("stroke-width", 2)
+    .attr("stroke", "black");
+  DNA.append("svg:line")
+    .attr("x1", 1)
+    .attr("y1", 50)
+    .attr("x2", 50)
+    .attr("y2", 25)
+    .attr("stroke-width", 2)
+    .attr("stroke", "black");
+
+// Sample data set for promoter flags
+var y = 100
+var data = '1,50'
+data = data.split(',');
+var x = []
+
+for (i = 0; i < data.length; i++) {
+  x.push(parseInt(data[i]))
+}
+console.log(x)
+
+
+// Making a flag using proper shapes
+  DNA.append("svg:polyline")
+    .attr("fill", "blue")
+    .attr("stroke", "blue")
+    .attr("stroke-width", 2)
+    .attr("points", (x[0]).toString()+','+(y).toString()+' '
+    +(x[0]).toString()+","+(y-40).toString()+' '
+    +(x[0]+9).toString()+','+(y-35).toString()+' '
+    +(x[0]).toString()+','+(y-30).toString())
+    .on("mouseover", handleMouseOver)
+    .on("mouseout", handleMouseOut);
+
+// Making anti-sense flag using proper shapes
+  DNA.append("svg:polyline")
+    .attr("fill", "blue")
+    .attr("stroke", "blue")
+    .attr("stroke-width", 2)
+    .attr("points", (x[1]).toString()+","+(y-40).toString()+' '
+    +(x[1]).toString()+","+(y).toString()+' '
+    +(x[1]-9).toString()+","+(y-5).toString()+' '
+    +(x[1]).toString()+","+(y-10).toString());
+
+  function handleMouseOver() {  // Add interactivity
+    d3.select(this).attr( {
+      'fill':'red'
+    })
+    d3.select(this).attr( {
+      'stroke':'red'
+    })
+    d3.select(this).attr( {
+      'points':(1).toString()+','+(100).toString()+' '
+      +(1).toString()+','+(50).toString()+' '
+      +(20).toString()+','+(60).toString()+' '
+      +(1).toString()+','+(70).toString()
+    });
+  }
+
+  function handleMouseOut() {
+     // Use D3 to select element, change color back to normal
+     d3.select(this).attr({
+       'fill':'blue'
+     })
+     d3.select(this).attr({
+       'stroke':'blue'
+     })
+     d3.select(this).attr({
+       'points':(1).toString()+','+(100).toString()+' '
+       +(1).toString()+","+(60).toString()+' '
+       +(10).toString()+','+(65).toString()+' '
+       +(1).toString()+','+(70).toString()
+     });
+   }
+
+</script>
+
+<script>
+// Making shape for gene annotation
+// Sense Strand
+DNA.append("svg:polyline")
+  .attr("fill", "LightBlue")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("points", (100).toString()+","+(100).toString()+' '
+  +(200).toString()+","+(100).toString()+' '
+  +(210).toString()+","+(90).toString()+' '
+  +(200).toString()+","+(80).toString()+' '
+  +(100).toString()+","+(80).toString()+' '
+  +(100).toString()+","+(100).toString());
+
+// Anti-sense Strand
+DNA.append("svg:polyline")
+  .attr("fill", "LightBlue")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("points", (400).toString()+","+(100).toString()+' '
+  +(300).toString()+","+(100).toString()+' '
+  +(290).toString()+","+(90).toString()+' '
+  +(300).toString()+","+(80).toString()+' '
+  +(400).toString()+","+(80).toString()+' '
+  +(400).toString()+","+(100).toString());
+</script>
+
+
+<script>
+var geneAnnotData = '##gff-version 3\n#!gff-spec-version 1.21\n#!processor NCBI annotwriter\n#!genome-build ASM942v1\n#!genome-build-accession NCBI_Assembly:GCA_000009425.1\n##sequence-region AM406671.1 1 2529478\n##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=416870\nAM406671.1\tEMBL\tregion\t1\t2529478\t.\t+\t.\tID=id0;Dbxref=taxon:416870;Is_circular=true;gbkey=Src;mol_type=genomic DNA;strain=MG1363\nAM406671.1\tEMBL\tgene\t1\t1365\t.\t+\t.\tID=gene0;Name=dnaA;gbkey=Gene;gene=dnaA;gene_biotype=protein_coding;locus_tag=llmg_0001\nAM406671.1\tEMBL\tCDS\t1\t1365\t.\t+\t0\tID=cds0;Parent=gene0;Dbxref=EnsemblGenomes-Gn:llmg_0001,EnsemblGenomes-Tr:CAL96609,GOA:A2RH74,InterPro:IPR001957,InterPro:IPR003593,InterPro:IPR010921,InterPro:IPR013159,InterPro:IPR013317,InterPro:IPR018312,InterPro:IPR020591,InterPro:IPR027417,NCBI_GP:CAL96609.1;Name=CAL96609.1;Note=ATPase involved in DNA replication initiation%3B~High confidence in function and specificity;gbkey=CDS;gene=dnaA;product=replication initiation protein DnaA;protein_id=CAL96609.1;transl_table=11\nAM406671.1\tEMBL\tgene\t1522\t2664\t.\t+\t.\tID=gene1;Name=dnaN;gbkey=Gene;gene=dnaN;gene_biotype=protein_coding;locus_tag=llmg_0002\nAM406671.1\tEMBL\tCDS\t1522\t2664\t.\t+\t0\tID=cds1;Parent=gene1;Dbxref=EnsemblGenomes-Gn:llmg_0002,EnsemblGenomes-Tr:CAL96610,GOA:O54376,InterPro:IPR001001,InterPro:IPR022634,InterPro:IPR022635,InterPro:IPR022637,NCBI_GP:CAL96610.1;Name=CAL96610.1;Note=DNA polymerase III%2C beta chain%3B~High confidence in function and specificity;gbkey=CDS;gene=dnaN;product=beta subunit of DNA polymerase III;protein_id=CAL96610.1;transl_table=11\nAM406671.1\tEMBL\tgene\t2770\t6069\t.\t+\t.\tID=gene2;Name=rexB;gbkey=Gene;gene=rexB;gene_biotype=protein_coding;locus_tag=llmg_0003\nAM406671.1\tEMBL\tCDS\t2770\t6069\t.\t+\t0\tID=cds2;Parent=gene2;Dbxref=EnsemblGenomes-Gn:llmg_0003,EnsemblGenomes-Tr:CAL96611,GOA:A2RH76,InterPro:IPR014141,InterPro:IPR027417,NCBI_GP:CAL96611.1;Name=CAL96611.1;Note=ATP-dependent exonuclease%2C ATP-stimulated endonuclease%2C ATP-dependent helicase and DNA-dependent ATPase%3B~High confidence in function and specificity;gbkey=CDS;gene=rexB;product=ATP-dependent nuclease subunit B;protein_id=CAL96611.1;transl_table=11\nAM406671.1\tEMBL\tgene\t6062\t9673\t.\t+\t.\tID=gene3;Name=rexA;gbkey=Gene;gene=rexA;gene_biotype=protein_coding;locus_tag=llmg_0004\nAM406671.1\tEMBL\tCDS\t6062\t9673\t.\t+\t0\tID=cds3;Parent=gene3;Dbxref=EnsemblGenomes-Gn:llmg_0004,EnsemblGenomes-Tr:CAL96613,GOA:A2RH77,InterPro:IPR000212,InterPro:IPR011335,InterPro:IPR011604,InterPro:IPR014016,InterPro:IPR014017,InterPro:IPR014152,InterPro:IPR027417,NCBI_GP:CAL96613.1;Name=CAL96613.1;Note=UvrD/REP helicase%3B~High confidence in function and specificity;gbkey=CDS;gene=rexA;product=ATP-dependent nuclease subunit A;protein_id=CAL96613.1;transl_table=11\nAM406671.1\tEMBL\tgene\t9708\t9908\t.\t+\t.\tID=gene4;Name=llmg_0005;gbkey=Gene;gene_biotype=protein_coding;locus_tag=llmg_0005\nAM406671.1\tEMBL\tCDS\t9708\t9908\t.\t+\t0\tID=cds4;Parent=gene4;Dbxref=EnsemblGenomes-Gn:llmg_0005,EnsemblGenomes-Tr:CAL96614,InterPro:IPR009296,UniProtKB/TrEMBL:A2RH78,NCBI_GP:CAL96614.1;Name=CAL96614.1;Note=Bacterial protein of unknown function DUF951;gbkey=CDS;product=conserved hypothetical protein;protein_id=CAL96614.1;transl_table=11\nAM406671.1\tEMBL\tgene\t9916\t10473\t.\t-\t.\tID=gene5;Name=llmg_0006;gbkey=Gene;gene_biotype=protein_coding;locus_tag=llmg_0006\nAM406671.1\tEMBL\tCDS\t9916\t10473\t.\t-\t0\tID=cds5;Parent=gene5;Dbxref=EnsemblGenomes-Gn:llmg_0006,EnsemblGenomes-Tr:CAL96615,GOA:A2RH79,InterPro:IPR001387,InterPro:IPR010982,UniProtKB/TrEMBL:A2RH79,NCBI_GP:CAL96615.1;Name=CAL96615.1;Note=Lambda repressor-like%2C DNA-binding%2C Helix-turn-helix;gbkey=CDS;product=Putative HTH-type transcriptional regulator;protein_id=CAL96615.1;transl_table=11\nAM406671.1\tEMBL\tgene\t10757\t11872\t.\t+\t.\tID=gene6;Name=llmg_0007;gbkey=Gene;gene_biotype=protein_coding;locus_tag=llmg_0007\nAM406671.1\tEMBL\tCDS\t10757\t11872\t.\t+\t0\tID=cds6;Parent=gene6;Dbxref=EnsemblGenomes-Gn:llmg_0007,EnsemblGenomes-Tr:CAL96616,GOA:A2RH80,InterPro:IPR004396,InterPro:IPR006073,InterPro:IPR012675,InterPro:IPR012676,InterPro:IPR013029,InterPro:IPR023192,InterPro:IPR027417,UniProtKB/TrEMBL:A2RH80,NCBI_GP:CAL96616.1;Name=CAL96616.1;Note=TIGR00092: GTP-binding protein YchF%2C Protein of unknown function (DUF933)%3B~Family membership;gbkey=CDS;product=GTP-dependent nucleic acid-binding protein;protein_id=CAL96616.1;transl_table=11\nAM406671.1\tEMBL\tgene\t11984\t12307\t.\t+\t.\tID=gene7;Name=llmg_0008;gbkey=Gene;gene_biotype=protein_coding;locus_tag=llmg_0008\nAM406671.1\tEMBL\tCDS\t11984\t12307\t.\t+\t0\tID=cds7;Parent=gene7;Dbxref=EnsemblGenomes-Gn:llmg_0008,EnsemblGenomes-Tr:CAL96617,GOA:A2RH81,InterPro:IPR001387,InterPro:IPR010982,UniProtKB/TrEMBL:A2RH81,NCBI_GP:CAL96617.1;Name=CAL96617.1;Note=DNA binding Helix-turn-helix motif%3B~Conserved hypothetical protein;gbkey=CDS;product=Putative HTH-type transcriptional regulator;protein_id=CAL96617.1;transl_table=11\nAM406671.1\tEMBL\tgene\t12720\t13421\t.\t+\t.\tID=gene8;Name=llmg_0009;gbkey=Gene;gene_biotype=protein_coding;locus_tag=llmg_0009\nAM406671.1\tEMBL\tCDS\t12720\t13421\t.\t+\t0\tID=cds8;Parent=gene8;Dbxref=EnsemblGenomes-Gn:llmg_0009,EnsemblGenomes-Tr:CAL96618,UniProtKB/TrEMBL:A2RH82,NCBI_GP:CAL96618.1;Name=CAL96618.1;gbkey=CDS;product=putative secreted protein;protein_id=CAL96618.1;transl_table=11\nAM406671.1\tEMBL\tgene\t13521\t13712\t.\t+\t.\tID=gene9;Name=llmg_0010;gbkey=Gene;gene_biotype=protein_coding;locus_tag=llmg_0010\n###\n'
+
+// Creates list to add gene annotations to the visualizer
+var lines = geneAnnotData.trim().split("\n");
+lines = lines.slice(8,lines.length-1)
+
+var geneAnnot = []
+for (i = 0; i < lines.length; i++) {
+  line = lines[i]
+  linecontent = line.split("\t")
+  if (linecontent[2] == 'gene'){
+    linecontent = [linecontent[0], linecontent[1], linecontent[2], parseInt(linecontent[3]), parseInt(linecontent[4]), linecontent[5], linecontent[6], linecontent[7], linecontent[8]]
+    geneAnnot.push(linecontent)
+  }
+}
+
+var genomeSize = 1
+var DNAlineSize = 0
+var genomeScale = 10
+var scaledGeneAnnot = []
+for (i = 0; i < geneAnnot.length; i++) {
+  if (genomeSize > DNAlineSize){
+    scaledGeneAnnot[i] = [geneAnnot[i][0], geneAnnot[i][1], geneAnnot[i][2], (geneAnnot[i][3])/genomeScale, (geneAnnot[i][4])/genomeScale, geneAnnot[i][5], geneAnnot[i][6], geneAnnot[i][7], geneAnnot[i][8]];
+  }
+}
+console.log(scaledGeneAnnot);
+
+</script>
+
+
+<!-- Making Buttons to go left and right -->
+<script>
+
+// First the square to house the left shape
+DNA.append("svg:polyline")
+  .attr("fill", "lightgrey")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("points", (30).toString()+','+(200).toString()+' '
+  +(30).toString()+','+(200-30).toString()+' '
+  +(30+30).toString()+','+(200-30).toString()+' '
+  +(30+30).toString()+','+(200).toString()+' '
+  +(30).toString()+','+(200).toString())
+
+// Then the left triangle shape
+DNA.append("svg:polyline")
+  .attr("fill", "black")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("points", (50).toString()+','+(192).toString()+' '
+  +(50).toString()+','+(192-14).toString()+' '
+  +(50-12).toString()+','+(192-7).toString()+' '
+  +(50).toString()+','+(192).toString())
+
+
+// First the square to house the right shape
+DNA.append("svg:polyline")
+  .attr("fill", "lightgrey")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("points", (100).toString()+','+(200).toString()+' '
+  +(100).toString()+','+(200-30).toString()+' '
+  +(100+30).toString()+','+(200-30).toString()+' '
+  +(100+30).toString()+','+(200).toString()+' '
+  +(100).toString()+','+(200).toString())
+
+// Then the right triangle shape
+DNA.append("svg:polyline")
+  .attr("fill", "black")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("points", (110).toString()+','+(192).toString()+' '
+  +(110).toString()+','+(192-14).toString()+' '
+  +(110+12).toString()+','+(192-7).toString()+' '
+  +(110).toString()+','+(192).toString())
+</script>

@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+    <title>BAGEL4 results</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<script src="canvas-toBlob.js"></script>
+	<script src="FileSaver.min.js"></script>
+
+	<style>
+		table {
+			border-collapse: collapse; }
+			th, td {
+				padding: 0px;
+				text-align: left;
+				border-bottom: 1px solid white; }
+			th {
+				background-color: #003333;
+				padding: 1px;
+				color: white; }
+			tr {
+				color=#E0FFFF; }
+			tr:hover{
+				background-color:white;}
+
+		table.webblast {
+			  font-family: Calibri;
+			  width: 100%;
+			  background-color: #EEEEEE;
+
+			  border-collapse: collapse;
+
+			}
+			table.webblast td {
+				padding-right: 15px;
+				padding-top: 0px;
+				padding-bottom: 0px;
+				font-size: 14px;
+				word-break: keep-all;
+			}
+			table.webblast th {
+				font-weight: normal;
+				padding-right: 15px;
+				font-size: 18px;
+				background: #1C6EA4;
+				border-bottom: 2px solid #12496d;
+			}
+		table.GeneTable {
+			  background-color: #EEEEEE;
+			  width: auto;
+			  border-collapse: collapse;
+
+			}
+			table.GeneTable th {
+				padding-left: 3px;
+				padding-right: 15px;
+				padding-top: 5px;
+				font-weight: normal;
+				font-size: 18px;
+				background: #1C6EA4;
+				border-bottom: 2px solid #12496d;
+				border-top: 1px solid #12496d;
+			}
+			table.GeneTable td {
+				padding-left: 5px;
+				padding-right: 15px;
+				padding-top: 2px;
+				padding-bottom: 1px;
+				font-size: 14px;
+			}
+
+
+
+		div.container {
+			font-family: Calibri, Helvetica, Arial, sans-serif;
+			width: 100%;
+			border: 1px solid gray;
+			}
+		header, footer {
+			padding: 1em;
+			font-family: Calibri;
+			color: white;
+			background-color: #04527c;
+			clear: left;
+			text-align: center;
+
+			padding-top: 5px;
+			padding-bottom: 1px;
+
+			}
+		nav {
+			float: left;
+			max-width: 160px;
+			margin: 0;
+			padding: 1em;
+			background-color: #EEEEEE;
+			}
+
+		nav ul {
+			list-style-type: none;
+			padding: 0;
+			}
+
+		nav ul a {
+			text-decoration: none;
+			}
+
+		article {
+			margin-left: 170px;
+			border-left: 1px solid gray;
+			padding: 1em;
+			overflow: scroll;
+			}
+		.d3-tip {
+		  line-height: 2;
+		  padding: 10px;
+		  background: #d5dce8;
+		  border-radius: 10px;
+		  }
+	li{
+		margin-top: 3px;
+
+	}
+	.buttonDownload {
+		background-color: #b33c00;
+		border: none;
+		color: white;
+		padding: 4px 24px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 12px;
+		width: 120px;
+	}
+	.buttonSaveImage {
+		background-color: #267326;
+		border: none;
+		color: white;
+		padding: 4px 24px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 12px;
+		width: 150px;
+	}
+	.buttonShowTable {
+		background-color: #2a6b96;
+		border: none;
+		color: white;
+		padding: 4px 24px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 12px;
+		width: 150px;
+	}
+	.align_right {
+		text-align: right;
+	}
+	.legend {
+		font-family: Calibri;
+		font-size: 13px;
+	}
+</style>
+
+	</style>
+</head>
+
+<body>
+<script>
+function getUrlVars()
+  {
+      var vars = [], hash;
+      var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+
+      for(var i = 0; i < hashes.length; i++)
+      {
+          hash = hashes[i].split('=');
+      hash[1] = unescape(hash[1]);
+      vars.push(hash[0]);
+          vars[hash[0]] = hash[1];
+      }
+
+      return vars;
+  }
+var urlVars = getUrlVars();
+
+
+
+</script>
+
+<div class="container">
+<header>
+		<script>
+		var UrlVars = getUrlVars();
+		document.write("<header><h2>BAGEL result for AOI: '"+UrlVars['queryname']+"'</h2></header>" );
+		</script>
+
+</header>
+
+
+<nav>
+  <ul>
+    <li>
+	<script>
+		var UrlVars = getUrlVars();
+		document.write("<a href=bagel4results/"+UrlVars['sessionID']+"/00.OverviewGeneTables.html><button class=buttonSaveImage>Overview of results</button></a>" );
+// activate this somewhere in March when all session have the json ==>		//document.write("<a href=OverviewTable.html?sessionID="+UrlVars['sessionID']+"><button class=buttonSaveImage>Overview of results</button></a>" );
+
+
+		//<a href=php/OverviewTable.html?sessionID=".$_SESSION["pid[$pid][ID]"]." target=_blank><b>Bookmark results here</b>
+	</script>
+	</li>
+    	<li><a href="http://bagel4.molgenrug.nl"><button class=buttonSaveImage>Start a new run</button></a></li>
+	<li><hr></li>
+	<script>
+		var UrlVars = getUrlVars();
+		document.write("<li>Download:</li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<a href=bagel4results/"+UrlVars['sessionID']+"/"+UrlVars['queryname']+".gbk download><button class=buttonDownload>Genbank</button></a></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<a href=bagel4results/"+UrlVars['sessionID']+"/"+UrlVars['queryname']+".fna download><button class=buttonDownload>FastA sequence</button></a></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<a href=bagel4results/"+UrlVars['sessionID']+"/"+UrlVars['queryname']+".faa download><button class=buttonDownload>FastA Proteins</button></a></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<a href=bagel4results/"+UrlVars['sessionID']+"/"+UrlVars['queryname']+".genes download><button class=buttonDownload>FastA Genes</button></a></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<a href=bagel4results/"+UrlVars['sessionID']+"/"+UrlVars['queryname']+".GeneTable download><button class=buttonDownload>Gene Table</button></a></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<a href=bagel4results/"+UrlVars['sessionID']+"/"+UrlVars['queryname']+".promoters download><button class=buttonDownload>Promoters</button></a></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<a href=bagel4results/"+UrlVars['sessionID']+"/"+UrlVars['queryname']+".transterm download><button class=buttonDownload>Terminators</button></a></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;</li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<button class=buttonDownload id='saveButton'>Image as PNG</button></li>" );
+		document.write("<li>&nbsp;&nbsp;&nbsp;<button class=buttonDownload id='saveButtonSVG'>Image as SVG</button></li>" );
+		document.write("<li><hr></li>" );
+		document.write("<li><button class=buttonShowTable id=showFullTable onclick=showFullGeneTable()>Show Full Gene Table</button></li>" );
+		document.write("<li><button class=buttonShowTable id=showCondensedTable onclick=showCondensedGeneTable()>Show Condensed Gene Table</button></li>" );
+		var empty_line = '<br>' ;
+		document.write(empty_line.repeat(24) );
+
+	</script>
+
+  </ul>
+</nav>
+
+
+
+<article>
+  <svg width="1960" height="400" onmouseout="my_hidetip" id=my_svg></svg>
+
+  <div id="test"></div><br>
+  <div id="divwebblast1"></div><br>
+  <div id="divwebblast2"></div><br>
+  <div id="my_condensed_table"></div> <!-- New JSON Table -->
+  <div id="my_full_GeneTable"></div> <!-- New JSON Table -->
+
+
+</article>
+
+<footer>Copyright &copy; University of Groningen</footer>
+
+
+
+<script>
+
+
+function showFullGeneTable() {
+	document.getElementById("my_condensed_table").style.display = "none";
+	document.getElementById("my_full_GeneTable").style.display = "block";
+}
+function showCondensedGeneTable() {
+	document.getElementById("my_condensed_table").style.display = "block";
+	document.getElementById("my_full_GeneTable").style.display = "none";
+}
+
+// get the GraphData from url
+	var UrlVars = getUrlVars();
+	sessionID = UrlVars['sessionID'] ;
+	AOI_count = UrlVars['AOI_count'] ;
+	queryname = UrlVars['queryname'] ;
+	jsonlink = "bagel4results/"+sessionID+"/"+queryname ;
+	jsonfolder ="bagel4results/"+sessionID+"/";
+	//document.write("<br>session="+sessionID) ;
+	//document.write("<br>queryname="+queryname) ;
+	//document.write("<br>json data:"+jsonlink) ;
+
+	var margin = {top: 40, right: 20, bottom: 30, left: 40},
+		width = 1000,
+		height = 400 ;
+
+	var svg = d3.select("svg")
+		.attr("width", width)
+		.attr("height", height)
+		.attr("id","svg1");
+
+
+	var layer1 = svg.append("g");
+	var layer2 = svg.append("g");
+	var layerRNA = svg.append("g");
+
+	var scaleX = d3.scale.linear()
+			.domain([0,100]) //Give appropriate range in the scale
+			.range([0,width]);
+
+	var scaleY = d3.scale.linear()
+			.domain([0,50]) //Give appropriate range in the scale
+			.range([height,0]);
+
+	function html_tip(GeneName, Function, Annotation, motifs, protein, dna) {
+		my_html = "<span style='color:#293d3d'><strong>" + GeneName + "</strong> </span><br>" ;
+		if (Function == '')   { my_html += Function }    else { my_html  += "<span style='color:#293d3d'><strong>Function:</strong> " + Function + "</span><br>" ;}
+		if (Annotation == '') { my_html += Annotation } else { my_html += "<span style='color:#293d3d'><strong>Blast result UniRef90:</strong> " + Annotation + "</span><br>" ;}
+		if (motifs == '')    { my_html += motifs } else { my_html += "<span style='color:#293d3d'><strong>motifs:</strong><a href=http://pfam.xfam.org/family/"+motifs.substr(0,7)+" target=_blank>"+motifs.substr(0,7)+"</a>" ;}
+		if (motifs.substr(8,2) == 'PF') { my_html +="&nbsp&nbsp<a href=http://pfam.xfam.org/family/"+motifs.substr(8,7)+" target=_blank><span >"+motifs.substr(8,7) ;}
+		if (motifs.substr(16,2) == 'PF') { my_html += "</a>&nbsp&nbsp<a href=http://pfam.xfam.org/family/"+motifs.substr(16,7)+" target=_blank><span >"+motifs.substr(16,7)+"</span></a><br>" ;} else {my_html +="</span></a><br>";}
+		if (protein.length < 100) { my_html += "<span style='color:#293d3d'><strong>AA:</strong> " + protein + "</span><br>" ;}
+		my_html += "<a href=https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE=Proteins&PROGRAM=blastp&BLAST_PROGRAMS=blastp&QUERY="+protein+"&LINK_LOC=protein&PAGE_TYPE=BlastSearch target=_blank><span >BLAST protein</span></a><br>"
+		my_html += "<a href=https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE=Nucleotides&PROGRAM=blastn&QUERY="+dna+"&DATABASE=nr&MEGABLAST=on&BLAST_PROGRAMS=megaBlast&LINK_LOC=nuccore&PAGE_TYPE=BlastSearch target=_blank><span >BLAST DNA</span></a>"
+		return my_html;
+	}
+
+
+	var tip = d3.tip()
+		.attr('class', 'd3-tip')
+		.style("font-family", "sans-serif")
+		.style("font-size", "10px")
+		.style("text-anchor", "middle")
+		.offset([10,-20])
+		.direction('s')
+
+		.html(function(d) { return html_tip(d.name, d.function, d.annotation, d.motifs, d.protein, d.dna ) });
+
+
+
+	var promoter_tip = d3.tip()
+		.attr('class', 'd3-tip')
+		.style("font-family", "sans-serif")
+		.style("font-size", "8px")
+		.style("text-anchor", "middle")
+		.offset([10,-20])
+		.direction('s')
+		.html(function(d) { return  "<span style='color:#293d3d'><strong>Sequence:</strong> " + d.annotation + "</span>" }) 	;
+
+
+
+
+  /* Initialize tooltip */
+	svg.call(tip);
+	svg.call(promoter_tip);
+	d3.selectAll(".d3-tip").on("click", tip.hide);
+
+
+
+
+
+
+// load RNA data
+	// d3.json("my_name.bedgraph.json", function(dataRNA) {  # example data
+	d3.json(jsonlink+".bedgraph.json", function(dataRNA) {
+
+		var max = d3.max(dataRNA.RNA[0].points.map(function(d) { return d.y}));
+		max = Math.round(max*10, 1)/10;
+		document.getElementById("test").innerHTML = 'Max value in BedGraph = '+max+' RPKM' ;
+		var yScale = d3.scale.linear()
+						.domain([max, 0])
+						.range([255, 355]);
+		var yRNAaxis = d3.svg.axis()
+			.scale(yScale)
+			.orient("right")
+			.ticks(4)
+			.tickSize(0, 0);
+
+
+		layerRNA.selectAll("polygon")
+			.data(dataRNA.RNA)
+				.enter().append("polygon")
+				.attr("points",function(d) { return d.points.map(function(d) { return [scaleX(d.x),scaleY((d.y)+5)].join(","); }).join(" ");})
+				.attr("fill",function(d)   { return d.color})
+				.style("opacity", 1)
+				.attr("stroke", "black")
+				.attr("stroke-width",0.8)
+				.style("stroke-opacity", 0.8) ;
+
+		layerRNA.append('g')
+			.attr("transform", "translate(" + (1) + ",0)")
+			.style("fill", "darkblue")
+			.call(yRNAaxis) ;
+	});
+
+
+
+// load Bagel4 config data
+	d3.json(jsonfolder+"bagel4.conf.json", function(data) {
+		var sorflen = function(data){d.smallorf_min_prot_length};
+	});
+
+
+
+// load GeneTable data
+	d3.json(jsonlink+".GeneTable.json", function(data) {
+
+
+
+
+
+	// add AOI name
+		layer2.append("g").selectAll("text")
+			.attr("class", "AOIs")
+			.data(data.AOIs)
+				.enter().append("text")
+				.attr("x", scaleX(2))
+				.attr("y", scaleY(47.5))
+				.style("font-family", "Calibri")
+				.style("font-size", "24px")
+				.text(function(d){return d.filename.replace(/_|\/|genomic.fna/g, " ")+" "+d.name.substr(d.name.length-6);});
+
+
+
+
+	// draw the genes  glimmer orfs
+		layer2.append("g").selectAll("polygon")
+			.data(data.Genes)
+
+				.enter().append("polygon")
+					.filter(function(d){return !d.name.match(/sO/)})// exclude sorfs
+					//.filter(function(d){return d.protein.indexOf("M") == 0})
+					.attr("points",function(d) { return d.points.map(function(d) { return [scaleX(d.x),scaleY((1.5*d.y)+23.5)].join(","); }).join(" ");})
+					.style("fill", function(d){
+						if (d.motifs == "" && d.function.match(/mmunity/)) {return "#ff3f3f"} // Turn gene red when annotated but no PFAM is detected
+
+						else {return d.color};})
+					.style("opacity", 1)
+					.attr("stroke", "black")
+					.attr("stroke-width",0.8)
+					.style("stroke-opacity", 0.8)
+					.on('mouseover', tip.show)
+					.on('click', tip.hide);
+
+	// draw the genes sorfs
+		layer2.append("g").selectAll("polygon")
+			.data(data.Genes)
+
+				.enter().append("polygon")
+				.attr("id", "sorfs")
+				.filter(function(d){return d.name.match(/sO/)})// auke trying something
+				//.filter(function(d){return d.protein.indexOf("M") == 0})
+				.attr("points",function(d) { return d.points.map(function(d) { return [scaleX(d.x),scaleY((1.5*d.y)+23.5)].join(","); }).join(" ");})
+				.attr("fill", "#bee8c2")
+				.style("opacity", 0)
+				.attr("stroke", "black")
+				.attr("stroke-width",0.8)
+				.style("stroke-opacity", 0.8)
+				.on('mouseover', tip.show)
+				//.on('mouseout', tip.hide);
+
+
+
+	// add genenames
+		layer2.append("g").selectAll("text")
+			.data(data.Genes)
+				.enter().append("text")
+				//.filter(function(d){return d.protein.length > 100})
+				//.filter(function(d){return d.protein.indexOf("M") == 0})
+				.filter(function(d){return !d.name.match(/sO/)})
+				.attr("id", "genenames1")
+				.attr("x", function(d) { return scaleX(d.xtext) })
+				.attr("y", function(d) { return scaleY(27) })
+				.style("text-anchor", "start")
+				.attr("transform", function(d) { return "rotate(" + [d.angle,scaleX(d.xtext),scaleY(27)] + ")" } )
+				.style("font-family", "sans-serif")
+				.style("font-size", "10px")
+				.style("opacity", 1)
+				.style("fill", "black")
+
+				.text(function(d) { return d.name; });
+	// add genenames sorfs
+		layer2.append("g").selectAll("text")
+			.data(data.Genes)
+
+				.enter().append("text")
+				.filter(function(d){return d.name.match(/sO/)})
+				.attr("id", "sorfnames")
+
+				.attr("x", function(d) { return scaleX(d.xtext) })
+				.attr("y", function(d) { return scaleY(27) })
+				.style("text-anchor", "start")
+				.attr("transform", function(d) { return "rotate(" + [d.angle,scaleX(d.xtext),scaleY(27)] + ")" } )
+				.style("font-family", "sans-serif")
+				.style("font-size", "10px")
+				.style("opacity", 0)
+				.style("fill", "black")
+				.text(function(d) { return d.name; });
+
+
+
+
+
+
+
+
+
+	// drawing AOIs line
+		layer1.append("g").selectAll("polygon")
+			.data(data.AOIs)
+				.enter().append("polygon")
+				.attr("points",function(d) { return d.points.map(function(d) { return [scaleX(d.x),scaleY(25)].join(","); }).join(" ");})
+				.attr("stroke","black")//function(d) { return d.color}
+				.attr("fill",function(d)   { return d.color})
+				.attr("stroke-width",2)
+				.on('mouseover', tip.show);
+
+
+	});
+	 	d3.json(jsonlink+".prom_term.json", function(dataPT) {
+		//Promoter element
+		layer2.append("g").selectAll("polygon")
+			.data(dataPT.promoters)
+				.enter().append("polygon")
+				.attr("id", "promoters")
+				.attr("points",function(d) { return d.points.map(function(d) { return [scaleX(d.x),scaleY(25-1.5*d.y)].join(","); }).join(" ");})
+				.attr("stroke",function(d) { return d.color})
+				.attr("fill",function(d)   { return d.color})
+				.attr("stroke-width",2)
+				.style("opacity", 1)
+				.on('mouseover', promoter_tip.show)
+				.on('mouseover', tip.hide)
+				.on('mouseout', promoter_tip.hide);
+
+
+
+		layer1.append("g").selectAll("circle")
+			.data(dataPT.terminators)
+				.enter().append("circle")
+				.attr("id", "terminators")
+				.attr("cx",function(d) { return scaleX(d.loop.cx) })
+				.attr("cy",function(d) { return scaleY(25-1.5*d.loop.cy) })
+				.attr("r",function(d)  { return scaleX(d.loop.r) })
+				.attr("stroke",function(d) { return d.color})
+				.attr("fill",function(d)   { return d.color})
+				.attr("stroke-width",1)
+				.style("opacity", 1)
+				.on('mouseover', promoter_tip.show)
+				.on('mouseover', tip.hide)
+				.on('mouseout', promoter_tip.hide);
+
+
+		layer1.append("g").selectAll("polygon")
+			.data(dataPT.terminators)
+				.enter().append("polygon")
+				.attr("id", "terminators")
+				.attr("points",function(d) { return d.stem.map(function(d) { return [scaleX(d.x),scaleY(25-1.5*d.y)].join(","); }).join(" ");})
+				//.attr("transform", function(d){ return "translate(" + [0, scaleY(40-d.yline) ] + ")" })
+				.attr("stroke",function(d) { return d.color})
+				.attr("fill",function(d)   { return d.color})
+				.attr("stroke-width",2)
+				.style("opacity", 1);
+
+		// Toggle on or off features in graph
+
+		//layer2.append("text")
+			//.attr("x", scaleX(0.5))
+			//.attr("y", scaleY(45))
+			//.attr("font-size", "12px")
+			//.text("Click to show or hide elements");
+
+
+			// Gene names on or off square
+		layer1.append("rect")
+			.attr("id", "genenames2")
+			.attr("class", "legend")
+			.attr("x", scaleX(0.5))         // position the left of the rectangle
+			.attr("y", scaleY(44.2))          // position the top of the rectangle
+			.attr("height", 10)    // set the height
+			.attr("width", 10)    // set the width
+			.attr("stroke-width", 1)
+			.attr("stroke", "black")
+			.on("click", function(){
+				// Determine if current line is visible
+				var active   = genenames1.active ? false : true ,
+				newOpacity = active ? 0 : 1;
+				// Hide or show the elements
+				d3.selectAll("#genenames1").style("opacity", newOpacity);
+				d3.selectAll("#genenames2").style("fill-opacity", newOpacity);
+				// Update whether or not the elements are active
+				genenames1.active = active;
+
+			})
+			;
+			//gene names text
+			layer2.append("text")
+			.attr("x", scaleX(2))
+			.attr("y", scaleY(43))
+			.attr("class", "legend")
+			.style("fill", "black")
+			.on("click", function(){
+				// Determine if current line is visible
+				var active   = genenames1.active ? false : true ,
+
+				newOpacity = active ? 0 : 1;
+				// Hide or show the elements
+				d3.selectAll("#genenames1").style("opacity", newOpacity);
+				d3.selectAll("#genenames2").style("fill-opacity", newOpacity);
+				// Update whether or not the elements are active
+				genenames1.active = active;
+			})
+			.text("Gene names");
+
+
+
+		// promoter square legend
+		layer1.append("rect")
+			.attr("id", "promoters2")
+			.attr("fill", "#2d65bf")
+			.style("fill-opacity", 1)
+			.attr("stroke-width", 1)
+			.attr("stroke", "#2d65bf")
+			.attr("class", "legend")
+			.attr("x", scaleX(0.5))         // position the left of the rectangle
+			.attr("y", scaleY(42.2))          // position the top of the rectangle
+			.attr("height", 10)    // set the height
+			.attr("width", 10)    // set the width
+			.on("click", function(){
+				// Determine if current line is visible
+				var active   = promoters.active ? false : true ,
+				newOpacity = active ? 0 : 1;
+				// Hide or show the elements
+				d3.selectAll("#promoters").style("opacity", newOpacity);
+				d3.selectAll("#promoters2").style("fill-opacity", newOpacity);
+				// Update whether or not the elements are active
+				promoters.active = active;
+
+			})
+			;
+			layer2.append("text")
+			.attr("x", scaleX(2))
+			.attr("y", scaleY(41))
+			//.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "#2d65bf")
+			.on("click", function(){
+				// Determine if current line is visible
+				var active   = promoters.active ? false : true ,
+
+				newOpacity = active ? 0 : 1;
+				// Hide or show the elements
+				d3.selectAll("#promoters").style("opacity", newOpacity);
+				d3.selectAll("#promoters2").style("fill-opacity", newOpacity);
+				// Update whether or not the elements are active
+				promoters.active = active;
+			})
+			.text("Predicted promoters");
+
+		// terminator text
+			layer2.append("text")
+			.attr("x", scaleX(2))
+			.attr("y", scaleY(39))
+			//.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "#ba4a28")
+			.on("click", function(){
+				// Determine if current line is visible
+				var active   = terminators.active ? false : true ,
+
+				newOpacity = active ? 0 : 1;
+				// Hide or show the elements
+				d3.selectAll("#terminators").style("opacity", newOpacity);
+				d3.selectAll("#terminators2").style("fill-opacity", newOpacity);
+				// Update whether or not the elements are active
+				terminators.active = active;
+			})
+			.text("Predicted terminators");
+
+
+		//terminator square in legend
+			layer2.append("rect")
+			.attr("id", "terminators2")
+			.attr("x", scaleX(0.5))         // position the left of the rectangle
+			.attr("y", scaleY(40.2))          // position the top of the rectangle
+			.attr("height", 10)    // set the height
+			.attr("width", 10)    // set the width
+			.attr("fill", "#ba4a28")
+			.style("fill-opacity", 1)
+			.attr("stroke-width", 1)
+			.attr("stroke", "#ba4a28")
+			.attr("class", "legend")
+
+			.on("click", function(){
+				// Determine if current line is visible
+				var active   = terminators.active ? false : true ,
+				newOpacity = active ? 0 : 1;
+				// Hide or show the elements
+				d3.selectAll("#terminators").style("opacity", newOpacity);
+				d3.selectAll("#terminators2").style("fill-opacity", newOpacity);
+				// Update whether or not the elements are active
+				terminators.active = active;
+
+			})
+			;
+
+		// small orfs text
+			layer2.append("text")
+			.attr("x", scaleX(2))
+			.attr("y", scaleY(37))
+			.attr("class", "legend")
+			.style("fill", "black")
+			.on("click", function(){
+
+				// Determine if current line is visible
+				var active   = sorfs.active ? false : true ,
+
+				newOpacity = active ? 0 : 1;
+				// Hide or show the elements
+				d3.selectAll("#sorfs").style("opacity", newOpacity);
+				d3.selectAll("#sorfs2").style("fill-opacity", newOpacity);
+				d3.selectAll("#sorfnames").style("opacity", newOpacity);
+				// Update whether or not the elements are active
+				sorfs.active = active;
+				if (active) {show_condensed_GeneTable('all') ;} else {show_condensed_GeneTable('not_all') ;}
+				if (active) {show_full_GeneTable('all') ;} else {show_full_GeneTable('not_all') ;}
+			})
+			.text("Show or hide small ORFS");
+
+
+
+		//show hide small orfs square in legend
+			layer2.append("rect")
+			.attr("id", "sorfs2")
+			.attr("x", scaleX(0.5))         // position the left of the rectangle
+			.attr("y", scaleY(38.2))          // position the top of the rectangle
+			.attr("height", 10)    // set the height
+			.attr("width", 10)    // set the width
+			.attr("fill", "#bee8c2")
+			.style("fill-opacity", 0)
+			.attr("stroke-width", 1)
+			.attr("stroke", "#bee8c2")
+			.attr("class", "legend")
+
+			.on("click", function(){
+				// Determine if current line is visible
+
+				var active   = sorfs.active ? false : true ,
+				newOpacity = active ? 1 : 0;
+				// Hide or show the elements
+				d3.selectAll("#sorfs").style("opacity", newOpacity);
+				d3.selectAll("#sorfs2").style("fill-opacity", newOpacity);
+				d3.selectAll("#sorfnames").style("opacity", newOpacity);
+				// Update whether or not the elements are active
+				sorfs.active = active;
+				if (active) {show_condensed_GeneTable('all') ;} else {show_condensed_GeneTable('not_all') ;}
+				if (active) {show_full_GeneTable('all') ;} else {show_full_GeneTable('not_all') ;}
+			})
+			;
+
+
+
+
+			//color legend
+
+
+
+			layer2.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(49.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("fill", "#d5dce8")
+			.style("fill-opacity", 1)
+			.attr("stroke-width", 1)
+			.attr("stroke", "black")
+			.attr("class", "legend");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(48.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("No function determined");
+
+
+			layer2.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(47.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("fill", "#8fbcb9")
+			.style("fill-opacity", 1)
+			.attr("stroke-width", 1)
+			.attr("stroke", "black")
+			.attr("class", "legend");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(46.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("Blast hit with UniRef90");
+
+			layer1.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(45.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("stroke-width", 1)
+			.attr("fill", "#70c947")
+			.attr("stroke", "black");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(44.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("Core Peptide");
+
+
+			layer1.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(43.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("stroke-width", 1)
+			.attr("fill", "#6ba3ff")
+			.attr("stroke", "black");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(42.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("Modification");
+
+			layer1.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(41.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("stroke-width", 1)
+			.attr("fill", "#ff3f3f")
+			.attr("stroke", "black");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(40.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("Immunity / Transport");
+
+			layer1.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(39.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("stroke-width", 1)
+			.attr("fill", "#fff651")
+			.attr("stroke", "black");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(38.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("Regulation");
+
+			layer1.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(37.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("stroke-width", 1)
+			.attr("fill", "pink")
+			.attr("stroke", "black");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(36.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("Transport & Leader cleavage");
+
+			layer1.append("rect")
+			.attr("x", scaleX(83))
+			.attr("y", scaleY(35.5))
+			.attr("height", 10)
+			.attr("width", 10)
+			.attr("stroke-width", 1)
+			.attr("fill", "#d36dff")
+			.attr("stroke", "black");
+
+			layer2.append("text")
+			.attr("x", scaleX(85))
+			.attr("y", scaleY(34.3))
+			.attr("font-size", "12px")
+			.attr("class", "legend")
+			.style("fill", "black")
+			.text("Protease");
+			});
+
+
+
+
+
+
+	// toggle GeneTables hide / show
+	function toggleTable(my_table_name) {
+		var lTable = document.getElementById(my_table_name);
+		lTable.style.display = (lTable.style.display == "table") ? "none" : "table";
+	}
+	GeneTablesLink = "bagel4results/"+sessionID+"/"+queryname+".GeneTable.html" ;
+	GeneTablesCondLink = "bagel4results/"+sessionID+"/"+queryname+".GeneTableCondensed.html" ;
+	GeneTableJSON = "bagel4results/"+sessionID+"/"+queryname+".GeneTable.json" ;
+	Alignmentslink = "bagel4results/"+sessionID+"/"+queryname+".Alignments.html" ;
+	Webblast_1_tables = "bagel4results/"+sessionID+"/"+queryname+".bacteriocin.blast_1.filenames.table" ;
+	Webblast_2_tables = "bagel4results/"+sessionID+"/"+queryname+".bacteriocin.blast_2.filenames.table" ;
+	document.title = queryname ;
+
+	// add the webblast results
+	// load the webblast results: 	NC_0030283.AOI_01.bacteriocin.blast_2.filenames.table
+
+	$.get(Webblast_1_tables,function(txt){
+		var lines = txt.split("\n");
+		if (lines.length > 1){
+		document.getElementById("divwebblast1").innerHTML = '' ;
+		var webblast_report = "";
+		var webblast_report_filenames = "";
+
+		for (var i = 0, len = lines.length; i < len; i++) {
+			if (lines[i].length > 10) {  // skip empty lines
+				var filename = "bagel4results/"+sessionID+"/"+lines[i] ;
+				webblast_report_filenames += filename+ '<br>' ;
+				$.getJSON(filename, function (data) {
+					document.getElementById("divwebblast1").innerHTML += data.blasthits[0].htmlrecord.replace('-','-');
+					//document.getElementById("divwebblast1").innerHTML += data.blasthits[0].htmlrecord;
+				}) ;
+			}
+		}
+	}}, 'text') ;
+
+	// load the webblast results: 	NC_0030283.AOI_01.bacteriocin.blast_2.filenames.table
+	$.get(Webblast_2_tables,function(txt){
+		var lines = txt.split("\n");
+		if (lines.length > 1){
+		document.getElementById("divwebblast2").innerHTML = '' ;
+		var webblast_report = "";
+		var webblast_report_filenames = "";
+
+		for (var i = 0, len = lines.length; i < len; i++) {
+			if (lines[i].length > 10) {  // skip empty lines
+				var filename = "bagel4results/"+sessionID+"/"+lines[i] ;
+				webblast_report_filenames += filename+ '<br>' ;
+				$.getJSON(filename, function (data) {
+					webblast_report += data.blasthits[0].htmlrecord.replace('-','&#x2011');
+					document.getElementById("divwebblast2").innerHTML  += data.blasthits[0].htmlrecord.replace('-','-');
+				}) ;
+			}
+		}
+	}}, 'text') ;
+
+	// load	condensed GeneTable: 'all'  will also show sORFs
+	show_condensed_GeneTable('not_all') ;
+	function show_condensed_GeneTable(include_sORF) {
+		$.getJSON(GeneTableJSON,function(data){
+			var TableBody = '<font style=color:#1C6EA4;background-color:white;padding:5px;padding-bottom:0px;font-size:18px;>Condensed Gene Table</font><br>';
+			TableBody += '<table id=CondensedTable class=GeneTable>' ;
+			TableBody += '<tr><th>Name</th><th>Function</th><th>Motifs</th></tr><tbody>' ;
+			for (var i = 0, len = data.Genes.length; i < len; i++) {
+				if (include_sORF == 'all' ||  !data.Genes[i].name.startsWith("sORF")) {
+					TableBody += '<tr style=background-color:'+data.Genes[i].color + ';>' ;
+					TableBody += '<td>'+data.Genes[i].name + '</td>' ;
+					//TableBody += '<td>'+data.Genes[i].gene_start + '</td>' ;
+					//TableBody += '<td>'+data.Genes[i].gene_end + '</td>' ;
+					//TableBody += '<td>'+data.Genes[i].gene_strand + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].function + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].motifs + '</td>' ;
+					TableBody += '</tr>' ;
+				}
+			}
+			TableBody +=  '</tbody></table>' ;
+			document.getElementById("my_condensed_table").innerHTML = TableBody ;
+		}) ;
+	}
+
+	// load	Full GeneTable : 'all'  will also show sORFs
+	show_full_GeneTable('not_all') ;
+	function show_full_GeneTable(include_sORF) {
+		$.getJSON(GeneTableJSON,function(data){
+			var TableBody = '<font style=color:#1C6EA4;background-color:white;padding:5px;padding-bottom:0px;font-size:18px;>Full Gene Table</font><br>';
+			TableBody += '<table id=CondensedTable class=GeneTable>' ;
+			//TableBody += '<tr style=background-color:black;color:white;margin-top:15px;margin-bottom:25px;>';
+			TableBody +=  '<tr><th>ORF</th><th>Name</th><th>Start</th><th>End</th><th>Strand</th><th>Real Start</th><th>Real End</th><th>Real Strand</th><th>Function</th><th>Motifs</th><th>Annotation</th><th>Protein</th><th>Gene</th></tr><tbody>' ;
+			for (var i = 0, len = data.Genes.length; i < len; i++) {
+				if (include_sORF == 'all' ||  !data.Genes[i].name.startsWith("sORF")) {
+					TableBody += '<tr style=background-color:'+data.Genes[i].color + ';>' ;
+					TableBody += '<td>'+data.Genes[i].orfname + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].name + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].gene_start + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].gene_end + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].gene_strand + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].real_start + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].real_end + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].real_strand + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].function + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].motifs + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].annotation + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].protein + '</td>' ;
+					TableBody += '<td>'+data.Genes[i].dna + '</td>' ;
+					TableBody += '</tr>' ;
+				}
+			}
+			TableBody +=  '</tbody></table>' ;
+			document.getElementById("my_full_GeneTable").innerHTML = TableBody ;
+		}) ;
+	}
+
+	$(document).ready(function() {
+	});
+
+	$( window ).on( "load", function() {
+		showCondensedGeneTable();
+	});
+
+
+
+// Set-up the PNG export button
+d3.select('#saveButton').on('click', function(){
+	var svgString = getSVGString(svg.node());
+	svgString2Image( svgString, 2*width, 2*height, 'png', save ); // passes Blob and filesize String to the callback
+	function save( dataBlob, filesize ){
+		saveAs( dataBlob, 'Graphics exported to '+queryname+'.png' ); // FileSaver.js function
+	}
+});
+
+// Set-up the SVG export button
+d3.select('#saveButtonSVG').on('click', function(){
+    try {
+        var isFileSaverSupported = !!new Blob();
+    } catch (e) {
+        alert("blob not supported");
+    }
+
+    var html = d3.select("svg")
+        .style("font-family","Calibri")
+		.attr("xmlns", "http://www.w3.org/2000/svg")
+        //.node().parentNode;
+        .node().parentNode.innerHTML;
+
+    var blob = new Blob([html], {type: "image/svg+xml"});
+    saveAs(blob, queryname+'.svg');
+});
+
+
+// Below are the functions that handle actual exporting:
+// getSVGString ( svgNode ) and svgString2Image( svgString, width, height, format, callback )
+function getSVGString( svgNode ) {
+	svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+	var cssStyleText = getCSSStyles( svgNode );
+	appendCSS( cssStyleText, svgNode );
+	var serializer = new XMLSerializer();
+	var svgString = serializer.serializeToString(svgNode);
+	svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
+	svgString = svgString.replace(/NS\d+:href/g, 'xlink:href'); // Safari NS namespace fix
+	return svgString;
+	function getCSSStyles( parentElement ) {
+		var selectorTextArr = [];
+		// Add Parent element Id and Classes to the list
+		selectorTextArr.push( '#'+parentElement.id );
+		for (var c = 0; c < parentElement.classList.length; c++)
+				if ( !contains('.'+parentElement.classList[c], selectorTextArr) )
+					selectorTextArr.push( '.'+parentElement.classList[c] );
+		// Add Children element Ids and Classes to the list
+		var nodes = parentElement.getElementsByTagName("*");
+		for (var i = 0; i < nodes.length; i++) {
+			var id = nodes[i].id;
+			if ( !contains('#'+id, selectorTextArr) )
+				selectorTextArr.push( '#'+id );
+			var classes = nodes[i].classList;
+			for (var c = 0; c < classes.length; c++)
+				if ( !contains('.'+classes[c], selectorTextArr) )
+					selectorTextArr.push( '.'+classes[c] );
+		}
+		// Extract CSS Rules
+		var extractedCSSText = "";
+		for (var i = 0; i < document.styleSheets.length; i++) {
+			var s = document.styleSheets[i];
+
+			try {
+			    if(!s.cssRules) continue;
+			} catch( e ) {
+		    		if(e.name !== 'SecurityError') throw e; // for Firefox
+		    		continue;
+		    	}
+			var cssRules = s.cssRules;
+			for (var r = 0; r < cssRules.length; r++) {
+				if ( contains( cssRules[r].selectorText, selectorTextArr ) )
+					extractedCSSText += cssRules[r].cssText;
+			}
+		}
+
+		return extractedCSSText;
+		function contains(str,arr) {
+			return arr.indexOf( str ) === -1 ? false : true;
+		}
+	}
+	function appendCSS( cssText, element ) {
+		var styleElement = document.createElement("style");
+		styleElement.setAttribute("type","text/css");
+		styleElement.innerHTML = cssText;
+		var refNode = element.hasChildNodes() ? element.children[0] : null;
+		element.insertBefore( styleElement, refNode );
+	}
+}
+function svgString2Image( svgString, width, height, format, callback ) {
+	var format = format ? format : 'png';
+	var imgsrc = 'data:image/svg+xml;base64,'+ btoa( unescape( encodeURIComponent( svgString ) ) ); // Convert SVG string to data URL
+	var canvas = document.createElement("canvas");
+	var context = canvas.getContext("2d");
+	canvas.width = width;
+	canvas.height = height;
+	var image = new Image();
+	image.onload = function() {
+		context.clearRect ( 0, 0, width, height );
+		context.drawImage(image, 0, 0, width, height);
+		canvas.toBlob( function(blob) {
+			var filesize = Math.round( blob.length/1024 ) + ' KB';
+			if ( callback ) callback( blob, filesize );
+		});
+
+	};
+	image.src = imgsrc;
+}
+
+
+
+</script>
+
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+    <title>Promoter Prediction Results</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<!-- <script src="canvas-toBlob.js"></script> -->
+	<!-- <script src="FileSaver.min.js"></script> -->
+</head>
+
+<body>
+<script>
+function getUrlVars()
+  {
+      var vars = [], hash;
+      var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+
+      for(var i = 0; i < hashes.length; i++)
+      {
+          hash = hashes[i].split('=');
+      hash[1] = unescape(hash[1]);
+      vars.push(hash[0]);
+          vars[hash[0]] = hash[1];
+      }
+
+      return vars;
+  }
+var urlVars = getUrlVars();
+
+</script>
+
+<div class="container">
+<header>
+		<script>
+		var UrlVars = getUrlVars();
+		document.write("<header><h2>PPP result for AOI: '"+UrlVars['queryname']+"'</h2></header>" );
+		</script>
+</header>
+
+<article>
+  <svg width="1960" height="400" onmouseout="my_hidetip" id=my_svg></svg>
+
+  <div id="test"></div><br>
+  <div id="divwebblast1"></div><br>
+  <div id="divwebblast2"></div><br>
+  <div id="my_condensed_table"></div> <!-- New JSON Table -->
+  <div id="my_full_GeneTable"></div> <!-- New JSON Table -->
+</article>
+
+<script>
+var svg = d3.select("svg")
+	.attr("width", width)
+	.attr("height", height)
+	.attr("id","svg1");
+
+
+var layer1 = svg.append("g");
+var layer2 = svg.append("g");
+var layerRNA = svg.append("g");
+
+</script>
+
+</body>

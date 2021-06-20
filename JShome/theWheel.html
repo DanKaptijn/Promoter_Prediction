@@ -1,0 +1,1415 @@
+<!--
+Author: Dan Kaptijn
+Date: 30/03/2020
+D3 Version: v2
+
+Aim: Make a script that will nicely visualize the results to prokaryote promoter prediction
+ -->
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART ONE: Inputting data -->
+<!-- ================================================================================================================================ -->
+
+<head>
+  <title id="title">Results: </title>
+<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src='genes_input_file.js?V1.0'></script>
+<script type="text/javascript" src='genome.js?V1.0'></script>
+<script type="text/javascript" src='genes_colour_input.js?V1.0'></script>
+<script type="text/javascript" src='prediction_output.js?V1.0'></script>
+<script type="text/javascript" src='anne_functions.js?V1.0'></script>
+<script type="text/javascript" src='FileSaver.min.js?V1.0'></script>
+</head>
+
+<h2 align="center" id="main_heading" style="font-family:arial;">DNA Predicted Promoters Viewer: </h2>
+<p align="left" style="font-family:arial;">Type base number, gene name or locus tag to go to that area of the genome:</p>
+
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART TWO: Creating a search bar -->
+<!-- ================================================================================================================================ -->
+
+<!-- __________ HTML STUFF __________ -->
+<style>
+  .topnav input[type=text] {
+    border: 1px solid #ccc;
+  }
+</style>
+
+<div class="topnav">
+  <div class="search-container">
+      <input type="text" placeholder="Search.." style="font-family:arial;" name="search" id='searcher'>
+      <button type="submit" id="button1"  style="font-family:arial;" onclick=goToLocation(searchBox.value)>Submit</button>
+      <span style="position:absolute; left:460px; font-family:arial;">Select the number of bases to be shown:</span>
+      <button style="position:absolute; left:760px; font-family:arial;" onclick=changeDNAsize(1000)>1,000bp</button>
+      <button style="position:absolute; left:830px; font-family:arial;" onclick=changeDNAsize(10000)>10,000bp</button>
+      <button style="position:absolute; left:907px; font-family:arial;" onclick=changeDNAsize(20000)>20,000bp</button>
+  </div>
+</div>
+
+
+<!-- __________ FUNCTIONS __________ -->
+<script>
+// This function mkaes the slider and promoters move when a search is submitted
+  function goToLocation(loc){
+    for (i=0; i<geneNames.length; i++){
+      if (geneNames[i][0].toLowerCase().includes(loc.toLowerCase().toString()) || geneNames[i][2].toLowerCase().includes(loc.toLowerCase().toString())){
+        new_loc = (geneNames[i][1]) - ((500)*genomeScale)
+        if (new_loc < 1){
+          new_loc = 1
+        }
+        slider.value = new_loc
+        updateData = (new_loc - 1)
+        sliderOffset = (new_loc - 1)
+        newLimitedData = editDataValues(scaledData,updateData);
+        newLimitedDataGenes = editDataValuesGenes(scaledGeneAnnot, updateData)
+        indexLower = 0
+        indexLowerGenes = 0
+        placeGenes()
+        geneNamesOn()
+        placePromoters()
+        firstBaseDenoting()
+        lastBaseDenoting()
+        removeText()
+        currentSliderValue = slider.value;
+      }
+    }
+    if (parseInt(loc) < genomeSize+1){
+      new_loc = parseInt(loc) - ((500)*genomeScale)
+      if (new_loc < 1){
+        new_loc = 1
+      }
+      slider.value = new_loc
+      updateData = (new_loc - 1)
+      sliderOffset = (new_loc - 1)
+      newLimitedData = editDataValues(scaledData,updateData);
+      newLimitedDataGenes = editDataValuesGenes(scaledGeneAnnot, updateData)
+      indexLower = 0
+      indexLowerGenes = 0
+      placeGenes()
+      geneNamesOn()
+      placePromoters()
+      firstBaseDenoting()
+      lastBaseDenoting()
+      removeText()
+      currentSliderValue = slider.value;
+    }
+  }
+
+  function changeDNAsize(size){
+    size = parseInt(size)
+    genomeScale = size/1000
+    DNAlineSize = size
+    slider.max = genomeSize + 1 - DNAlineSize
+    updateData = slider.value - 1
+    sliderOffset = slider.value - 1
+    scaledPromoters()
+    scaledGenes()
+    newLimitedData = editDataValues(scaledData,updateData);
+    newLimitedDataGenes = editDataValuesGenes(scaledGeneAnnot, updateData)
+    indexLower = 0
+    indexLowerGenes = 0
+    placeGenes()
+    geneNamesOn()
+    placePromoters()
+    firstBaseDenoting()
+    lastBaseDenoting()
+    removeText();
+  }
+</script>
+
+
+<!-- __________ JAVASCRIPT __________ -->
+<script>
+  // Code to allow pressing enter on keyboard instead of pressing the button
+  var searchBox = document.getElementById("searcher");
+  searchBox.addEventListener("keyup", function(event) {
+    // Number 13 is the "Enter" key on the keyboard
+    if (event.keyCode === 13) {
+      goToLocation(searchBox.value)
+    }
+  })
+</script>
+
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART THREE: Creating global variables -->
+<!-- ================================================================================================================================ -->
+
+<!-- FUNCTIONS -->
+<script>
+  function DnaTranscriber(dna) {
+    dna = dna.replace(/C/g,"g");
+    dna = dna.replace(/G/g,"c");
+    dna = dna.replace(/A/g,"t");
+    dna = dna.replace(/T/g,"a");
+    dna = dna.toUpperCase();
+    return (dna)
+  }
+
+  function reverse(s){
+    return s.split("").reverse().join("");
+}
+
+function motifs(motif,seq){
+  Total = 0
+  if(motif == 'TATAAT'){
+    if(seq[0] == 't'){
+      Total += 1
+    }if(seq[1] == 'a'){
+      Total += 1
+    }if(seq[2] == 't'){
+      Total += 1
+    }if(seq[3] == 'a'){
+      Total += 1
+    }if(seq[4] == 'a'){
+      Total += 1
+    }if(seq[5] == 't'){
+      Total += 1
+    }
+  }
+  if(motif == 'TTGACA'){
+    if(seq[0] == 't'){
+      Total += 1
+    }if(seq[1] == 't'){
+      Total += 1
+    }if(seq[2] == 'g'){
+      Total += 1
+    }if(seq[3] == 'a'){
+      Total += 1
+    }if(seq[4] == 'c'){
+      Total += 1
+    }if(seq[5] == 'a'){
+      Total += 1
+    }
+  }
+  if(Total>3){
+    return true
+  }
+  if(Total<4){
+    return false
+  }
+}
+</script>
+
+<!-- JAVASCRIPT -->
+<script>
+  var baseDenoters = [1,1000]
+  var DNAlineSize = 10000
+  var genomeScale = 10
+  var sliderOffset = 0
+
+  // Sets the title and heading of the page to the first line in the fna file
+  var queryID = genome.split("\n")
+  queryID = queryID[0]
+  document.getElementById("title").innerHTML = "Results: "+queryID
+  document.getElementById("main_heading").innerHTML = "DNA Predicted Promoters Viewer: "+queryID
+
+  // Change yValue to change the height of the whole figure
+  var yValue = 120
+
+  // Creates list from predicted locations to add promoters to visualizer
+  var lines = dataFile.split("\n");
+  var originalData = []
+  for (i = 0; i < lines.length; i++) {
+    line = lines[i]
+    linecontent = line.split("\t")
+    linecontent = [parseInt(linecontent[0]), linecontent[1]]
+    originalData.push(linecontent)
+  }
+  originalData.sort(function(a,b){return a[0] - b[0];});
+
+  genome = genome.split("\n")
+  genome = genome.slice(1,genome.length).join("")
+  var genomeSize = genome.length
+  var n = 0
+  sequences = []
+  promoter_colours = []
+  for (i = 0; i<originalData.length; i++) {
+  colouring = 0
+    if (originalData[i][1] == '+') {
+      t_seq = genome.slice(originalData[i][0]-50, originalData[i][0]+1).toLowerCase() + genome[originalData[i][0]+1] + genome.slice(originalData[i][0]+2 , originalData[i][0]+4).toLowerCase()
+      for (j = 54-20; j < 54-7; j++){
+        n = motifs('TATAAT',t_seq.slice(j,j+6))
+        if (n){
+          upper_tataat = t_seq.slice(j,j+6).toUpperCase()
+          t_seq = t_seq.slice(0,j)+upper_tataat+t_seq.slice(j+6,54)
+          colouring += 2
+          break;
+        }
+      }
+      for (j = 0; j < 20; j++){
+        n = motifs('TTGACA',t_seq.slice(j,j+6))
+        if (n){
+          upper_ttgaca = t_seq.slice(j,j+6).toUpperCase()
+          t_seq = t_seq.slice(0,j)+upper_ttgaca+t_seq.slice(j+6,54)
+          colouring += 1
+          break;
+        }
+      }
+      sequences.push(t_seq)
+      promoter_colours.push(colouring)
+    } else {
+      t_seq = reverse(DnaTranscriber(genome.slice(originalData[i][0], originalData[i][0]+51))).toLowerCase() + DnaTranscriber(genome.slice(originalData[i][0]-1, originalData[i][0])) + reverse(DnaTranscriber(genome.slice(originalData[i][0]-3 , originalData[i][0]-1))).toLowerCase()
+      for (j = 54-19; j < 54-7; j++){
+        n = motifs('TATAAT',t_seq.slice(j,j+6))
+        if (n){
+          upper_tataat = t_seq.slice(j,j+6).toUpperCase()
+          t_seq = t_seq.slice(0,j)+upper_tataat+t_seq.slice(j+6,54)
+          colouring += 2
+          break;
+        }
+      }
+      for (j = 0; j < 20; j++){
+        n = motifs('TTGACA',t_seq.slice(j,j+6))
+        if (n){
+          upper_ttgaca = t_seq.slice(j,j+6).toUpperCase()
+          t_seq = t_seq.slice(0,j)+upper_ttgaca+t_seq.slice(j+6,54)
+          colouring += 1
+          break;
+        }
+      }
+      sequences.push(t_seq)
+      promoter_colours.push(colouring)
+    }
+  }
+
+  // Creates list to add gene annotations to the visualizer
+  var lines = geneAnnotData.trim().split("\n");
+  var geneAnnot = []
+  for (i = 0; i < lines.length; i++) {
+    line = lines[i]
+    linecontent = line.split("\t")
+    if (linecontent[2] == 'gene'){
+      linecontent = [linecontent[0], linecontent[1], linecontent[2], parseInt(linecontent[3]), parseInt(linecontent[4]), linecontent[5], linecontent[6], linecontent[7], linecontent[8]]
+      geneAnnot.push(linecontent)
+    }
+  }
+
+  // Create a list of gene names to add to the visualizer above each gene
+  var locus_tags = []
+  var geneNames = []
+  for (i = 0; i < geneAnnot.length; i++){
+    linecontent = geneAnnot[i][8].split(';')
+    for (j=0; j<linecontent.length; j++){
+      if (linecontent[j].slice(0,5) == 'Name='){
+        position = ((geneAnnot[i][4]-geneAnnot[i][3])/2)+geneAnnot[i][3]
+        name = linecontent[j].slice(5,linecontent[j].length)
+        geneNames.push([name, position])
+      }
+      if (linecontent[j].slice(0,10) == 'locus_tag='){
+        geneNames[i].push(linecontent[j].slice(10,linecontent[j].length))
+      }
+    }
+  }
+  // If there were any locus tags missing this will give them the value of NULL instead
+  for (i=0; i<geneNames.length; i++){
+    try {
+      genenames[i][2]
+    }
+    catch(err) {
+      geneNames[i].push('NULL')
+    }
+  }
+// Creating a scaled version of the data in order to be able to 'change the size' of the DNA line
+  var scaledData = []
+  function scaledPromoters(){
+    for (i = 0; i < originalData.length; i++) {
+      scaledData[i] = [(originalData[i][0]/genomeScale), originalData[i][1], sequences[i], promoter_colours[i]];
+    }
+    scaledData.sort(function(a,b){return a[0] - b[0];});
+  }
+  scaledPromoters()
+
+  // Creating a scaled version of gene annotations list
+  var scaledGeneAnnot = []
+  function scaledGenes(){
+    for (i = 0; i < geneAnnot.length; i++) {
+      scaledGeneAnnot[i] = [geneAnnot[i][0], geneAnnot[i][1], geneAnnot[i][2], (geneAnnot[i][3])/genomeScale, (geneAnnot[i][4])/genomeScale, geneAnnot[i][5], geneAnnot[i][6], geneAnnot[i][7], geneAnnot[i][8]];
+    }
+  }
+  scaledGenes()
+
+  // index variables are used to limit the amount of data the script goes through each time the slider is moved
+  var indexLower = 0
+  var indexHigher = 0
+  var limitedData = []
+  for (i=0; i<Math.min(DNAlineSize, scaledData.length); i++){
+    if (scaledData[i][0]>0 && scaledData[i][0]<DNAlineSize){
+      limitedData.push(scaledData[i])
+      indexHigher = i
+    }
+  }
+  // Need a second small dataset which allows for the editting of one of the datasets
+  var newLimitedData = limitedData
+
+  var indexLowerGenes = 0
+  var indexHigherGenes = 0
+  var limitedDataGenes = []
+  for (i=0; i<Math.min(DNAlineSize, scaledGeneAnnot.length); i++){
+    if (scaledGeneAnnot[i][4]>0 && scaledGeneAnnot[i][3]<DNAlineSize){
+      limitedDataGenes.push(scaledGeneAnnot[i])
+      indexHigherGenes = i
+    }
+  }
+  var newLimitedDataGenes = limitedDataGenes
+
+  var colours_for_genes = []
+  var lines = genes_colour_input.split("\n")
+  for (i=0; i<lines.length; i++){
+    if (lines[i][0] == "#"){
+      continue
+    }
+    line = lines[i].split("\t")
+    colours_for_genes.push(line)
+  }
+
+</script>
+<p style="font-family:arial; position:absolute; left:300px;"> <b>Click on a promoter to keep the information on screen </b></p>
+<br>
+
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART FOUR: Making a DNA line -->
+<!-- ================================================================================================================================ -->
+
+<!-- __________ HTML STUFF __________ -->
+<div id="container"></div>
+
+
+<!-- __________ JAVASCRIPT __________ -->
+<script>
+  var DNA = d3.select("#container").
+    append("svg:svg").
+    attr("width", 1001).
+    attr("height", 280);
+
+// DNA line
+  DNA.append("svg:rect").
+    attr("x", 0).
+    attr("y", yValue).
+    attr("height", 2).
+    attr("width", 1000).
+    style("fill", "black");
+
+// First base denoter
+  DNA.append("svg:rect").
+    attr("x", 0).
+    attr("y", yValue).
+    attr("height", 126).
+    attr("width", 1).
+    style("fill", "black");
+
+// Last base denoter
+  DNA.append("svg:rect").
+    attr("x", 1000).
+    attr("y", yValue).
+    attr("height", 126).
+    attr("width", 1).
+    style("fill", "black");
+</script>
+
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART FIVE: Annotating the genes onto the DNA line -->
+<!-- ================================================================================================================================ -->
+
+
+<!-- FUNCTIONS -->
+<script>
+    // The data values need to be editted in order to appear a the correct point on the DNA line
+  function editDataValuesGenes(d,num){
+      var temp = []
+      for(i = 0; i<d.length; i++){
+        temp.push([d[i][0], d[i][1], d[i][2], d[i][3]- (num/genomeScale), d[i][4]- (num/genomeScale), d[i][5], d[i][6], d[i][7], d[i][8]])
+      }
+    return(temp)
+    }
+
+  function sliderMoveRightGenes(sliderVal){
+    var index_check = 0
+    limitedDataGenes = []
+    for (i=indexLowerGenes; i<Math.min(scaledGeneAnnot.length, (DNAlineSize*2)+sliderVal); i++){
+      if ((scaledGeneAnnot[i][4]*genomeScale)>=sliderVal && (scaledGeneAnnot[i][3]*genomeScale)<=DNAlineSize+sliderVal){
+        limitedDataGenes.push(scaledGeneAnnot[i])
+        indexHigherGenes = i
+        if (index_check==0){
+          indexLowerGenes = i
+          index_check +=1
+        }
+      }
+      if ((scaledGeneAnnot[i][3]*genomeScale)>DNAlineSize+sliderVal){
+        break;
+      }
+    }
+  }
+
+  function sliderMoveLeftGenes(sliderVal){
+    var index_check = 0
+    limitedDataGenes = []
+    var upper = Math.min(indexHigherGenes-scaledGeneAnnot.length, indexHigherGenes-(sliderVal+(DNAlineSize*2)))
+    if (upper < 0){
+      upper = 0
+    }
+    for (i=indexHigherGenes; i>=upper; i--){
+      if ((scaledGeneAnnot[i][4]*genomeScale)>=sliderVal && (scaledGeneAnnot[i][3]*genomeScale)<=DNAlineSize+sliderVal){
+        limitedDataGenes.push(scaledGeneAnnot[i])
+        indexLowerGenes = i
+        if (index_check==0){
+          indexHigherGenes = i
+          index_check +=1
+        }
+      }
+      if ((scaledGeneAnnot[i][0]*genomeScale)<sliderVal){
+        limitedDataGenes.sort(function(a,b){return a[4] - b[4];})
+        break;
+      }
+    }
+    limitedDataGenes.sort(function(a,b){return a[4] - b[4];})
+  }
+
+  // This function makes the genes move as the slider is moved
+  function placeGenes(){
+    var genes = geneGroup.selectAll("polyline")
+      .data(newLimitedDataGenes)
+    genes.enter()
+      .append("polyline")
+    genes.exit().remove()
+    genes.attr(geneAttrs)
+    genes.attr(geneColourAttrs)
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .on("mouseover", addGeneNames)
+    .on("mouseout", removeGeneNames)
+  }
+
+  // Mouse over function for gene names
+  function addGeneNames(d, i) {  // Add interactivity
+    tatmotif, ttgmotif, nomotif, yesmotif, alwayson, horizontal = checkboxes()
+    d3.select(this)
+    if (horizontal == false){
+      geneGroup.append("text").attr({
+        id: "g" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
+        x: function() { return (d[3] + ((d[4]-d[3]-0.1)/2)) },
+        y: function() { return (yValue-20)}
+      })
+      .attr("transform", "rotate(-60"+" "+(d[3]+((d[4]-d[3]-0.1)/2))+" "+(yValue-20).toString()+")")
+      .style("font-family","arial")
+      .text(function () {
+        return ((geneNames[i+indexLowerGenes][0]))
+      })
+    } else {
+      geneGroup.append("text").attr({
+        id: "g" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
+        x: function() { return (d[3] + ((d[4]-d[3]-0.1)/2)) },
+        y: function() { return (yValue-20)}
+      })
+      .attr("transform", "rotate(0"+" "+(d[3]+((d[4]-d[3]-0.1)/2))+" "+(yValue-20).toString()+")")
+      .style("font-family","arial")
+      .text(function () {
+        return ((geneNames[i+indexLowerGenes][0]))
+      })
+    }
+  }
+
+
+  function removeGeneNames(d, i) {
+     // Select text by id and then remove
+     d3.select("#g" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
+     d3.select("#g" + d.x + "-" + d.y + "-" + i).remove();
+     d3.select("#g" + d.x + "-" + d.y + "-" + i).remove();
+   }
+
+
+  function geneNamesOn() {
+    tatmotif, ttgmotif, nomotif, yesmotif, alwayson, horizontal = checkboxes()
+    if (alwayson == true){
+      var alwaysGeneNames = geneGroup.selectAll("text")
+        .data(newLimitedDataGenes)
+      alwaysGeneNames.enter()
+        .append("text")
+      alwaysGeneNames.exit().remove()
+      alwaysGeneNames.attr("x", function(d,i) {return (d[3] + ((d[4]-d[3]-0.1)/2))})
+      .attr("id", "g2" )
+      .attr("y", function(d,i) {return (yValue-20)})
+      .attr("transform", function(d,i) { if (horizontal == false)
+        {return ("rotate(-60"+" "+(d[3]+((d[4]-d[3]-0.1)/2))+" "+(yValue-20).toString()+")")}
+        else {return ("rotate(0"+" "+(d[3]+((d[4]-d[3]-0.1)/2))+" "+(yValue-20).toString()+")")}
+      })
+      .style("font-family","arial")
+      .text(function(d,i) {
+        return ((geneNames[i+indexLowerGenes][0]))
+      })
+    } else {
+      for (i=0; i<newLimitedDataGenes.length; i++){
+      d3.select("#g2").remove();}
+    }
+  }
+
+</script>
+
+<!-- JAVASCRIPT -->
+<script>
+  var horizontal = false
+  var alwayson = false
+
+  var geneAttrs = {
+      points: function(d) {
+        if (d[6] == "-") {
+          return(
+          (d[4]).toString()+','+(yValue+1+12).toString()+' '
+          +(d[4]).toString()+','+(yValue+1-12).toString()+' '
+          +(d[3]+10).toString()+','+(yValue+1-12).toString()+' '
+          +(d[3]).toString()+','+(yValue+1).toString()+' '
+          +(d[3]+10).toString()+','+(yValue+1+12).toString()+' '
+          +(d[4]).toString()+','+(yValue+1+12).toString())
+        } else {
+          return(
+          (d[3]).toString()+','+(yValue+1+12).toString()+' '
+          +(d[3]).toString()+','+(yValue+1-12).toString()+' '
+          +(d[4]-10).toString()+','+(yValue+1-12).toString()+' '
+          +(d[4]).toString()+','+(yValue+1).toString()+' '
+          +(d[4]-10).toString()+','+(yValue+1+12).toString()+' '
+          +(d[3]).toString()+','+(yValue+1+12).toString())
+        }
+      }
+  }
+
+  var geneColourAttrs = {
+    "fill": function(d,i) {
+      for (j=0; j<colours_for_genes.length; j++){
+        if(colours_for_genes[j][0].includes(geneNames[i+indexLowerGenes][0]) || colours_for_genes[j][0].includes(geneNames[i+indexLowerGenes][2])){
+          return(colours_for_genes[j][1])
+        }
+      }
+      return("LightBlue")
+    }
+  }
+
+  // Creates the first instance of the gene annotations
+  var geneGroup = DNA.append("g");
+
+  // Code to show genes
+  geneGroup.selectAll("polyline")
+    .data(scaledGeneAnnot)
+    .enter()
+    .append("polyline")
+    .attr(geneAttrs)
+    .attr("fill","LightBlue")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .on("mouseover", addGeneNames)
+    .on("mouseout", removeGeneNames);
+
+  // code to make gene names always show
+  if (alwayson == true){
+  geneGroup.selectAll("text")
+    .data(scaledGeneAnnot)
+    .enter()
+    .append("text")
+    .attr("x", function(d,i) {return (d[3] + ((d[4]-d[3]-0.1)/2))})
+    .attr("y", function(d,i) {return (yValue-20)})
+    .attr("transform", function(d,i) { if (horizontal == false)
+      {return ("rotate(-60"+" "+(d[3]+((d[4]-d[3]-0.1)/2))+" "+(yValue-20).toString()+")")}
+      else {return ("rotate(0"+" "+(d[3]+((d[4]-d[3]-0.1)/2))+" "+(yValue-20).toString()+")")}
+    })
+    .text(function(d,i) {
+      return ((geneNames[i+indexLowerGenes][0]))
+    })
+  }
+
+
+</script>
+
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART SIX: Annotating the DNA line with the predicted promoters -->
+<!-- ================================================================================================================================ -->
+
+<!-- __________ FUNCTIONS __________ -->
+<script>
+  // The data values need to be editted in order to appear a the correct point on the DNA line
+  function editDataValues(d,num){
+    var temp = []
+    for(i = 0; i<d.length; i++){
+      temp.push([d[i][0] - (num/genomeScale), d[i][1], d[i][2], d[i][3]])
+    }
+  return(temp)
+  }
+
+  function sliderMoveRight(sliderVal){
+    var index_check = 0
+    limitedData = []
+    for (i=indexLower; i<Math.min(scaledData.length, (DNAlineSize*2)+sliderVal); i++){
+      if ((scaledData[i][0]*genomeScale)>=sliderVal && (scaledData[i][0]*genomeScale)<=DNAlineSize+sliderVal){
+        limitedData.push(scaledData[i])
+        indexHigher = i
+        if (index_check==0){
+          indexLower = i
+          index_check +=1
+        }
+      }
+      if ((scaledData[i][0]*genomeScale)>DNAlineSize+sliderVal){
+        break;
+      }
+    }
+  }
+
+  function sliderMoveLeft(sliderVal){
+    var index_check = 0
+    limitedData = []
+    var upper = Math.min(indexHigher-scaledData.length, indexHigher-(sliderVal+(DNAlineSize*2)))
+    if (upper < 0){
+      upper = 0
+    }
+    for (i=indexHigher; i>=upper; i--){
+      if ((scaledData[i][0]*genomeScale)>=sliderVal && (scaledData[i][0]*genomeScale)<=DNAlineSize+sliderVal){
+        limitedData.push(scaledData[i])
+        indexLower = i
+        if (index_check==0){
+          indexHigher = i
+          index_check +=1
+        }
+      }
+      if ((scaledData[i][0]*genomeScale)<sliderVal){
+        limitedData.sort(function(a,b){return a[0] - b[0];})
+        break;
+      }
+    }
+    limitedData.sort(function(a,b){return a[0] - b[0];})
+  }
+
+
+  // This function makes the promoter flags move as the slider is moved
+  function placePromoters(){
+    tatmotif, ttgmotif, nomotif, yesmotif, alwayson, horizontal = checkboxes()
+    var promoters = promoterGroup.selectAll("polyline")
+      .data(newLimitedData)
+    promoters.enter()
+      .append("polyline")
+    promoters.exit().remove()
+    promoters.attr(promoterAttrs)
+    .attr(fillAttrs)
+    .attr(strokeAttrs)
+    .attr("stroke-width", 1)
+    .on("mouseover", handleMouseOver)
+    .on("mouseout", handleMouseOut)
+    .on("click", function(d, i, originalData){
+      if (clicked == false){
+        clicked = true
+        promoterGroup.append("text").attr({
+          id: "clickID1",  // Create an id for text so we can select it later for removing on mouseout
+          x: function() { return d[0] },
+          y: function() {
+            if (d[1] == "-") {
+              return yValue+60
+            } else {
+              return yValue-90
+            }}
+        })
+        .style("font", "13px times")
+        .style("font-family","arial")
+        .attr({
+          "text-anchor": function(){
+            if (d[0] > 500) {
+              return 'end'
+            } else {
+              return 'start'
+            }}
+        })
+        .text(function () {
+          return ("Promoter: " + (i+1+indexLower) + " | " + "Strand: " + d[1])
+        })
+        promoterGroup.append("text").attr({
+          id: "clickID2",  // Create an id for text so we can select it later for removing on mouseout
+          x: function() { return d[0] },
+          y: function() {
+            if (d[1] == "-") {
+              return yValue+80
+            } else {
+              return yValue-70
+            }}
+        })
+        .style("font", "13px times")
+        .style("font-family","arial")
+        .attr({
+          "text-anchor": function(){
+            if ((d[0]) > 500) {
+              return 'end'
+            } else {
+              return 'start'
+            }}
+        })
+        .text(function () {
+          return ("Sequence: " + d[2].slice(0,51) + '| ' +d[2].slice(51,54))
+        })
+        promoterGroup.append("text").attr({
+          id: "clickID3",  // Create an id for text so we can select it later for removing on mouseout
+          x: function() { return d[0] },
+          y: function() {
+            if (d[1] == "-") {
+              return yValue+100
+            } else {
+              return yValue-50
+            }}
+        })
+        .style("font", "13px times")
+        .style("font-family","arial")
+        .attr({
+          "text-anchor": function(){
+            if (d[0] > 500) {
+              return 'end'
+            } else {
+              return 'start'
+            }}
+        })
+        .text(function () {
+          return ("TSS Location: " + ((d[0]+(sliderOffset)/genomeScale) * genomeScale))
+        })
+      }
+      else {
+        clicked = false
+        // Select text by id and then remove
+        d3.select("#clickID1").remove();  // Remove text location
+        d3.select("#clickID2").remove();
+        d3.select("#clickID3").remove();
+      }
+    })
+  }
+
+  // Adds commas to big numbers to make them more readable
+  function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  // This function changes the value that shows the base number at the start of the DNA line
+  var denotingGroup = DNA.append("g")
+
+  function firstBaseDenoting(){
+    var first = denotingGroup.selectAll("text")
+      .data(baseDenoters)
+    first.enter()
+      .append("text")
+    first.exit().remove()
+    first.attr({
+        x: 0,
+        y: yValue+140
+      })
+      .style("font-family","arial")
+      .text(function () {
+        return ("base: "+numberWithCommas(slider.value))
+      })
+  }
+
+  // This function changes the value that shows the base number at the end of the DNA line
+  function lastBaseDenoting(){
+    var bases = denotingGroup.selectAll("text2")
+      .data(baseDenoters)
+    bases.enter()
+      .append("text")
+    bases.exit().remove()
+    bases.attr({
+      x: 1000,
+      y: yValue+140
+    })
+    bases.attr({
+      "text-anchor":'end'
+    })
+    .style("font-family","arial")
+    .text(function () {
+      return ("base: "+numberWithCommas(parseInt(slider.value)+DNAlineSize-1))
+    })
+  }
+
+
+  function handleMouseOver(d, i, originalData) {  // Add interactivity
+    d3.select(this).attr( {
+      'points': function(d) {
+        if (d[1] == "-") {
+          return(
+          (d[0]).toString()+','+(yValue+2).toString()+' '
+          +(d[0]).toString()+','+(yValue+2+50).toString()+' '
+          +(d[0]-19).toString()+','+(yValue+2+40).toString()+' '
+          +(d[0]).toString()+','+(yValue+2+30).toString())
+        } else {
+          return(
+          (d[0]).toString()+','+(yValue).toString()+' '
+          +(d[0]).toString()+','+(yValue-50).toString()+' '
+          +(d[0]+19).toString()+','+(yValue-40).toString()+' '
+          +(d[0]).toString()+','+(yValue-30).toString())
+        }
+      }
+    })
+    promoterGroup.append("text").attr({
+      id: "t" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
+      x: function() { return d[0] },
+      y: function() {
+        if (d[1] == "-") {
+          return yValue+60
+        } else {
+          return yValue-90
+        }}
+    })
+    .style("font", "13px times")
+    .style("font-family","arial")
+    .attr({
+      "text-anchor": function(){
+        if (d[0] > 500) {
+          return 'end'
+        } else {
+          return 'start'
+        }}
+    })
+    .text(function () {
+      return ("Promoter: " + (i+1+indexLower) + " | " + "Strand: " + d[1])
+    })
+    promoterGroup.append("text").attr({
+      id: "t" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
+      x: function() { return d[0] },
+      y: function() {
+        if (d[1] == "-") {
+          return yValue+80
+        } else {
+          return yValue-70
+        }}
+    })
+    .style("font", "13px times")
+    .style("font-family","arial")
+    .attr({
+      "text-anchor": function(){
+        if ((d[0]) > 500) {
+          return 'end'
+        } else {
+          return 'start'
+        }}
+    })
+    .text(function () {
+      return ("Sequence: " + d[2].slice(0,51) + '| ' +d[2].slice(51,54))
+    })
+    promoterGroup.append("text").attr({
+      id: "t" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
+      x: function() { return d[0] },
+      y: function() {
+        if (d[1] == "-") {
+          return yValue+100
+        } else {
+          return yValue-50
+        }}
+    })
+    .style("font", "13px times")
+    .style("font-family","arial")
+    .attr({
+      "text-anchor": function(){
+        if (d[0] > 500) {
+          return 'end'
+        } else {
+          return 'start'
+        }}
+    })
+    .text(function () {
+      return ("TSS Location: " + ((d[0]+(sliderOffset)/genomeScale) * genomeScale))
+    })
+  }
+
+  function handleMouseOut(d, i) {
+     // Use D3 to select element, change color back to normal
+     d3.select(this).attr( {
+       'points': function(d) {
+         if (d[1] == "-") {
+           return(
+           (d[0]).toString()+','+(yValue+2).toString()+' '
+           +(d[0]).toString()+','+(yValue+2+40).toString()+' '
+           +(d[0]-9).toString()+','+(yValue+2+35).toString()+' '
+           +(d[0]).toString()+','+(yValue+2+30).toString())
+         } else {
+           return(
+           (d[0]).toString()+','+(yValue).toString()+' '
+           +(d[0]).toString()+','+(yValue-40).toString()+' '
+           +(d[0]+9).toString()+','+(yValue-35).toString()+' '
+           +(d[0]).toString()+','+(yValue-30).toString())
+         }
+       }
+     })
+     // Select text by id and then remove
+     d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
+     d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();
+     d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();
+   }
+
+   function removeText(){
+     if (clicked == true){
+     clicked = false
+     d3.select("#clickID1").remove();  // Remove text location
+     d3.select("#clickID2").remove();
+     d3.select("#clickID3").remove();
+    }
+   }
+
+</script>
+
+
+<!-- __________ JAVASCRIPT __________ -->
+<script>
+  var promoterAttrs = {
+      points: function(d) {
+        if (d[1] == "-") {
+          return(
+          (d[0]).toString()+','+(yValue+2).toString()+' '
+          +(d[0]).toString()+','+(yValue+2+40).toString()+' '
+          +(d[0]-9).toString()+','+(yValue+2+35).toString()+' '
+          +(d[0]).toString()+','+(yValue+2+30).toString())
+        } else {
+          return(
+          (d[0]).toString()+','+(yValue).toString()+' '
+          +(d[0]).toString()+','+(yValue-40).toString()+' '
+          +(d[0]+9).toString()+','+(yValue-35).toString()+' '
+          +(d[0]).toString()+','+(yValue-30).toString())
+        }
+      }
+  }
+
+  var nomotif = 'red'
+  var ttgmotif = 'orange'
+  var tatmotif = 'limegreen'
+  var yesmotif = 'blue'
+
+  var fillAttrs = {
+    fill: function(d){
+      if (d[3] == 0){
+        return (nomotif)
+      }
+      if (d[3] == 1){
+        return (ttgmotif)
+      }
+      if (d[3] == 2){
+        return (tatmotif)
+      }
+      if (d[3] ==  3){
+        return (yesmotif)
+      }
+    }
+  }
+  var strokeAttrs = {
+    stroke: function(d){
+      if (d[3] == 0){
+        return (nomotif)
+      }
+      if (d[3] == 1){
+        return (ttgmotif)
+      }
+      if (d[3] == 2){
+        return (tatmotif)
+      }
+      if (d[3] == 3){
+        return (yesmotif)
+      }
+    }
+  }
+
+// Creates the first instance of the promoter flags
+var clicked = false
+var promoterGroup = DNA.append("g")
+
+  promoterGroup.selectAll("polyline")
+    .data(limitedData)
+    .enter()
+    .append("polyline")
+    .attr(promoterAttrs)
+    .attr(fillAttrs)
+    .attr(strokeAttrs)
+    .attr("stroke-width", 1)
+    .on("mouseover", handleMouseOver)
+    .on("mouseout", handleMouseOut)
+    .on("click", function(d, i, originalData){
+      if (clicked == false){
+        clicked = true
+        promoterGroup.append("text").attr({
+          id: "clickID1",  // Create an id for text so we can select it later for removing on mouseout
+          x: function() { return d[0] },
+          y: function() {
+            if (d[1] == "-") {
+              return yValue+60
+            } else {
+              return yValue-90
+            }}
+        })
+        .style("font", "13px times")
+        .style("font-family","arial")
+        .attr({
+          "text-anchor": function(){
+            if (d[0] > 500) {
+              return 'end'
+            } else {
+              return 'start'
+            }}
+        })
+        .text(function () {
+          return ("Promoter: " + (i+1+indexLower) + " | " + "Strand: " + d[1])
+        })
+        promoterGroup.append("text").attr({
+          id: "clickID2",  // Create an id for text so we can select it later for removing on mouseout
+          x: function() { return d[0] },
+          y: function() {
+            if (d[1] == "-") {
+              return yValue+80
+            } else {
+              return yValue-70
+            }}
+        })
+        .style("font", "13px times")
+        .style("font-family","arial")
+        .attr({
+          "text-anchor": function(){
+            if ((d[0]) > 500) {
+              return 'end'
+            } else {
+              return 'start'
+            }}
+        })
+        .text(function () {
+          return ("Sequence: " + d[2].slice(0,51) + '| ' +d[2].slice(51,54))
+        })
+        promoterGroup.append("text").attr({
+          id: "clickID3",  // Create an id for text so we can select it later for removing on mouseout
+          x: function() { return d[0] },
+          y: function() {
+            if (d[1] == "-") {
+              return yValue+100
+            } else {
+              return yValue-50
+            }}
+        })
+        .style("font", "13px times")
+        .style("font-family","arial")
+        .attr({
+          "text-anchor": function(){
+            if (d[0] > 500) {
+              return 'end'
+            } else {
+              return 'start'
+            }}
+        })
+        .text(function () {
+          return ("TSS Location: " + ((d[0]+(sliderOffset)/genomeScale) * genomeScale))
+        })
+      }
+      else {
+        clicked = false
+        // Select text by id and then remove
+        d3.select("#clickID1").remove();  // Remove text location
+        d3.select("#clickID2").remove();
+        d3.select("#clickID3").remove();
+      }
+    })
+</script>
+
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART SEVEN: Making Navigation buttons AND checkboxes -->
+<!-- ================================================================================================================================ -->
+<!-- __________ HTML STUFF __________ -->
+<div id="move_buttons">
+  <span style="position:absolute; left:140px; top:459px;font-family:arial;">Change how many bases to move:</span>
+  <button style="position:absolute; left:100px; top:480px; font-family:arial;" onclick=changeNavigation(100)>100bp</button>
+  <button style="position:absolute; left:162px; top:480px; font-family:arial;" onclick=changeNavigation(1000)>1,000bp</button>
+  <button style="position:absolute; left:235px; top:480px; font-family:arial;" onclick=changeNavigation(5000)>5,000bp</button>
+  <button style="position:absolute; left:310px; top:480px; font-family:arial;" onclick=changeNavigation(10000)>10,000bp</button>
+
+  <input style="position:absolute; left:720px; top:410px" type="checkbox" id="-10" name="-10" checked onclick="placePromoters()">
+  <label style="position:absolute; left:745px; top:409px; font-family:arial;" for="-10"> Colour promoters with only -10 motif green</label>
+
+  <input style="position:absolute; left:720px; top:430px" type="checkbox" id="-35" name="-35" checked onclick="placePromoters()">
+  <label style="position:absolute; left:745px; top:429px; font-family:arial;" for="-35"> Colour promoters with only -35 motif orange</label>
+
+  <input style="position:absolute; left:720px; top:450px;" type="checkbox" id="no" name="no" checked onclick="placePromoters()">
+  <label style="position:absolute; left:745px; top:449px; font-family:arial;" for="no"> Colour promoters with neither motif red</label>
+
+  <input style="position:absolute; left:470px; top:410px" type="checkbox" id="shownames" name="shownames" onclick="geneNamesOn()">
+  <label style="position:absolute; left:495px; top:409px; font-family:arial;" for="shownames"> Always show gene names</label>
+
+  <input style="position:absolute; left:470px; top:430px" type="checkbox" id="horinames" name="horinames" onclick="geneNamesOn()">
+  <label style="position:absolute; left:495px; top:429px; font-family:arial;" for="horinames"> Gene names horizontal</label>
+</div>
+
+<!-- FUNCTIONS -->
+<script>
+function changeNavigation(amount){
+  navigation = amount
+  showAmountLeft(amount)
+  showAmountRight(amount)
+}
+
+function checkboxes(){
+  checkbox1 = document.getElementById("-10");
+  checkbox2 = document.getElementById("-35");
+  checkbox3 = document.getElementById("no");
+  checkbox4 = document.getElementById("shownames");
+  checkbox5 = document.getElementById("horinames");
+  if (checkbox1.checked == true){
+    tatmotif = "limegreen"
+    yesmotif = "blue"
+  } else {
+    tatmotif = "blue"
+  }
+  if (checkbox2.checked == true){
+    ttgmotif = "orange"
+    yesmotif = "blue"
+  } else {
+    ttgmotif = "blue"
+  }
+  if (checkbox3.checked == true){
+    nomotif = "red"
+  } else {
+    nomotif = "blue"
+  }
+  if (checkbox4.checked == true){
+    alwayson = true
+  } else {
+    alwayson = false
+  }
+  if (checkbox5.checked == true){
+    horizontal = true
+  } else {
+    horizontal = false
+  }
+  return (tatmotif,ttgmotif,nomotif,yesmotif,alwayson,horizontal)
+}
+
+function showAmountLeft(new_amount){
+  var lAmount = left.selectAll("text")
+  .data(baseDenoters)
+  lAmount.enter()
+  .append("text")
+  lAmount.exit().remove()
+  lAmount.attr({
+    x: 190,
+    y: 20
+  })
+  lAmount.attr({
+    "text-anchor":'end'
+  })
+  .style("font-family","arial")
+  .text(function () {
+    return ("-"+numberWithCommas(new_amount))
+  })
+}
+
+function showAmountRight(new_amount){
+  var rAmount = right.selectAll("text")
+  .data(baseDenoters)
+  rAmount.enter()
+  .append("text")
+  rAmount.exit().remove()
+  rAmount.attr({
+    x: 307,
+    y: 20
+  })
+  rAmount.attr({
+    "text-anchor":'start'
+  })
+  .style("font-family","arial")
+  .text(function () {
+    return ("+"+numberWithCommas(new_amount))
+  })
+}
+</script>
+
+<!-- JAVASCRIPT -->
+<script>
+var navigate = d3.select("#move_buttons").
+  append("svg:svg").
+  attr("width", 1001).
+  attr("height", 120);
+
+  var left = navigate.append("g")
+  var right = navigate.append("g")
+  var navigation = 5000
+  showAmountLeft(navigation)
+  showAmountRight(navigation)
+  var currentSliderValue = 1
+  // First the square to house the left shape
+  var lButton = {
+    points: (200).toString()+','+(30).toString()+' '
+    +(200).toString()+','+(30-30).toString()+' '
+    +(200+30).toString()+','+(30-30).toString()+' '
+    +(200+30).toString()+','+(30).toString()+' '
+    +(200).toString()+','+(30).toString()
+  }
+  var lArrow = {
+    points: (220).toString()+','+(30-8).toString()+' '
+    +(220).toString()+','+(30-22).toString()+' '
+    +(220-12).toString()+','+(30-15).toString()+' '
+    +(220).toString()+','+(30-8).toString()
+  }
+left.append("polyline")
+  .attr(lButton)
+  .attr("fill","lightgrey")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+left.append("polyline")
+  .attr(lArrow)
+  .attr("fill","black")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+
+left.on("click", function(){
+  slider.value = currentSliderValue - navigation
+  if(slider.value < 1){
+    slider.value = 1
+  }
+  upOrDown = slider.value
+  sliderMoveLeft(slider.value)
+  sliderMoveLeftGenes(slider.value)
+  updateData = (slider.value - 1)
+  sliderOffset = (slider.value - 1)
+  newLimitedData = editDataValues(limitedData,updateData);
+  newLimitedDataGenes = editDataValuesGenes(limitedDataGenes, updateData)
+  currentSliderValue = slider.value
+  placeGenes()
+  geneNamesOn()
+  placePromoters()
+  firstBaseDenoting()
+  lastBaseDenoting()
+  removeText();
+})
+
+
+  // First the square to house the right shape
+  var rButton = {
+    points: (270).toString()+','+(30).toString()+' '
+    +(270).toString()+','+(30-30).toString()+' '
+    +(270+30).toString()+','+(30-30).toString()+' '
+    +(270+30).toString()+','+(30).toString()+' '
+    +(270).toString()+','+(30).toString()
+  }
+  var rArrow = {
+    points: (280).toString()+','+(30-8).toString()+' '
+    +(280).toString()+','+(30-22).toString()+' '
+    +(280+12).toString()+','+(30-15).toString()+' '
+    +(280).toString()+','+(30-8).toString()
+  }
+
+right.append("polyline")
+  .attr(rButton)
+  .attr("fill","lightgrey")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+right.append("polyline")
+  .attr(rArrow)
+  .attr("fill","black")
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+
+right.on("click", function(){
+  slider.value = parseInt(currentSliderValue) + navigation
+  if(slider.value > genomeSize + 1 - DNAlineSize){
+    slider.value = genomeSize + 1 - DNAlineSize
+  }
+  upOrDown = slider.value
+  sliderMoveRight(slider.value)
+  sliderMoveRightGenes(slider.value)
+  updateData = (slider.value - 1)
+  sliderOffset = (slider.value - 1)
+  newLimitedData = editDataValues(limitedData,updateData);
+  newLimitedDataGenes = editDataValuesGenes(limitedDataGenes, updateData)
+  currentSliderValue = slider.value
+  placeGenes()
+  geneNamesOn()
+  placePromoters()
+  firstBaseDenoting()
+  lastBaseDenoting()
+  removeText();
+})
+</script>
+
+
+
+<!-- ================================================================================================================================ -->
+<!-- PART EIGHT: Making a slider -->
+<!-- ================================================================================================================================ -->
+
+<!-- __________ CSS STUFF __________ -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.slidecontainer {
+  width: 1000px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 1000px;
+  height: 10px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-moz-range-thumb {
+  width: 10px;
+  height: 25px;
+  background: #040100;
+  border-radius: 1px;
+  cursor: pointer;
+}
+</style>
+
+
+<!-- __________ HTML STUFF __________ -->
+<div class="slidecontainer">
+  <p style="font-family:arial;">Move slider to move along DNA:</p>
+  <input type="range" min="1" max="1" value="1" class="slider" id="myRange">
+</div>
+
+
+<!-- __________ JAVASCRIPT __________ -->
+<script>
+var slider = document.getElementById("myRange");
+slider.max = genomeSize + 1 - DNAlineSize
+slider.step = "1"
+
+var updateData = 0
+var upOrDown = 1
+// Update the current slider value (each time you drag the slider handle)
+
+slider.oninput = function() {
+  if (parseInt(this.value) > upOrDown){
+    sliderMoveRight(parseInt(this.value))
+    sliderMoveRightGenes(parseInt(this.value))
+  }
+  if (parseInt(this.value) < upOrDown){
+    sliderMoveLeft(parseInt(this.value))
+    sliderMoveLeftGenes(parseInt(this.value))
+  }
+  upOrDown = parseInt(this.value)
+  updateData = parseInt(this.value - 1)
+  sliderOffset = ((parseInt(this.value) - 1) )
+  newLimitedData = editDataValues(limitedData,updateData);
+  newLimitedDataGenes = editDataValuesGenes(limitedDataGenes, updateData)
+  placeGenes()
+  geneNamesOn()
+  placePromoters()
+  firstBaseDenoting()
+  lastBaseDenoting()
+  removeText()
+  currentSliderValue = slider.value;
+}
+firstBaseDenoting()
+lastBaseDenoting()
+</script>
+
+<br>
+<div style="font-family:arial;">
+  <img src="images/download.svg" width=50 height=60 onclick=save_SVG2PNG("promoters_image.png")><br> Download Screenshot
+</div>

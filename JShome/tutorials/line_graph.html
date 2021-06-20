@@ -1,0 +1,156 @@
+<!-- Source: https://website.education.wisc.edu/~swu28/d3t/visualization.html#v002 -->
+<head>
+<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js"></script>
+</head>
+
+<div id="viz"></div>
+
+<div id="dataID"></div>
+
+<script type="text/javascript">
+var data2 = [1, 3, 4, 3, 6, 1, 8, 2, 4, 1, 3, 4, 1]
+var data1 = [3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 7],
+
+w = 500,
+h = 200,
+margin = 20,
+
+y = d3.scale.linear().domain([0, d3.max(data1)]).range([0 + margin, h - margin]),
+x = d3.scale.linear().domain([0, data1.length]).range([0 + margin, w - margin])
+
+var vis = d3.select("#viz")
+  .append("svg:svg")
+  .attr("width", w)
+  .attr("height", h)
+
+var g = vis.append("svg:g")
+  .attr("transform", "translate(0, 200)")
+
+//Lets draw the X axis
+g.append("svg:line")
+  .transition()
+  .duration(1000)
+  .style("stroke", "black")
+  .attr("x1", x(0))
+  .attr("y1", -1 * y(0))
+  .attr("x2", x(w))
+  .attr("y2", -1 * y(0))
+
+//Lets draw the Y axis
+g.append("svg:line")
+  .transition()
+  .duration(1000)
+  .style("stroke", "black")
+  .attr("x1", x(0))
+  .attr("y1", -1 * y(0))
+  .attr("x2", x(0))
+  .attr("y2", -1 * y(d3.max(data1)))
+
+//X Axis labels
+g.selectAll(".xLabel")
+  .data(x.ticks(5))
+  .style("font-size","9pt")
+  .enter()
+  .append("svg:text")
+  .transition()
+  .duration(1000)
+  .attr("class", "xLabel")
+  .text(String)
+  .attr("x", function(i) { return x(i) })
+  .attr("y", 0)
+  .attr("text-anchor", "middle")
+
+//Y axis labels
+g.selectAll(".yLabel")
+  .data(y.ticks(4))
+  .style("font-size","9pt")
+  .enter().append("svg:text")
+  .transition()
+  .duration(1000)
+  .attr("class", "yLabel")
+  .text(String)
+  .attr("x", 0)
+  .attr("y", function(i) { return -1 * y(i) })
+  .attr("text-anchor", "right")
+  .attr("dy", 4)
+
+//X axis tick marks
+g.selectAll(".xTicks")
+  .data(x.ticks(5))
+  .enter().append("svg:line")
+  .transition()
+  .duration(1000)
+  .style("stroke", "black")
+  .attr("class", "xTicks")
+  .attr("x1", function(i) { return x(i); })
+  .attr("y1", -1 * y(0))
+  .attr("x2", function(i) { return x(i); })
+  .attr("y2", -1 * y(-0.3))
+
+//Y axis tick marks
+g.selectAll(".yTicks")
+  .data(y.ticks(4))
+  .enter().append("svg:line")
+  .transition()
+  .duration(1000)
+  .style("stroke", "black")
+  .attr("class", "yTicks")
+  .attr("y1", function(d) { return -1 * y(d); })
+  .attr("x1", x(-0.3))
+  .attr("y2", function(d) { return -1 * y(d); })
+  .attr("x2", x(0));
+
+var line = d3.svg.line()
+  .x(function(d,i) { return x(i); })
+  .y(function(d) { return -1 * y(d); })
+
+g.append("svg:path")
+  .transition()
+  .delay(1100)
+  .attr("d", line(data1))
+  .style("stroke", "indianred")
+  .style("stroke-width", 3)
+  .style("fill", "none")
+
+var change=new Boolean()
+  change = true
+
+vis.on("mousedown" , function(){
+  if(change){
+    g.select("path")
+      .transition()
+      .duration(200)
+      .attr("d", line(data2))
+      .style("stroke", "steelblue")
+    textLabels.text("Data set 2")
+
+      change = false
+  }
+  else {
+    g.select("path")
+      .transition()
+      .ease("back")
+      .duration(200)
+      .attr("d", line(data1))
+      .style("stroke", "indianred")
+    textLabels.text("Data set 1")
+
+      change = true
+    }
+  })
+
+  var svgContainer = d3.select("#dataID").append("svg")
+                                      .attr("width",200)
+                                      .attr("height",200);
+  var text = svgContainer.selectAll("text")
+                          .data(data1)
+                          .enter()
+                          .append("text");
+  var textLabels = text
+                   .attr("x", 0)
+                   .attr("y", 50)
+                   .text("Data set 1")
+                   .attr("font-family", "sans-serif")
+                   .attr("font-size", "20px")
+
+</script>

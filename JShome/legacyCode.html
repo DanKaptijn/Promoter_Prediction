@@ -1,0 +1,35 @@
+<!-- STEP THREE: Have text above the marker that shows the promoter name, base and base number --> -->
+
+<input id='input_file' type='file' />
+
+<script>
+  DNA.append("svg:text").
+  attr("x", 30).
+  attr("y", 20).
+  text("Promoter: 1").
+  append("svg:tspan").
+  attr("x", 30).
+  attr("y", 40).
+  text("Strand: +").
+  append("svg:tspan").
+  attr("x", 30).
+  attr("y", 60).
+  text("Location: base 30");
+
+
+DNA.append("svg:rect")
+  .attr("x", 0)
+  .attr("y", 70)
+  .attr("width", 2)
+  .attr("height", 30)
+  .style("fill","blue");
+
+DNA.append("svg:rect")
+  .attr("x", 49)
+  .attr("y", 60)
+  .attr("width", 2)
+  .attr("height", 30)
+  .style("fill","blue");
+
+
+</script>
